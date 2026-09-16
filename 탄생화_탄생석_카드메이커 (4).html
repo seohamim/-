@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>탄생화 · 탄생석 카드 메이커</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+
+<style>
+  @font-face{
+    font-family:'GmarketSansMedium';
+    src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2107@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight:500; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'GmarketSansBold';
+    src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2107@1.1/GmarketSansBold.woff') format('woff');
+    font-weight:700; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Paperlogy';
+    src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
+    font-weight:400; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Paperlogy';
+    src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
+    font-weight:600; font-style:normal; font-display:swap;
+  }
+
+  :root{
+    --font-main:'Pretendard', sans-serif;
+    --font-serif:'Noto Serif KR', serif;
+
+    --ui-bg:#F5F4F1;
+    --ui-panel:#FFFFFF;
+    --ui-border:#E4E1D9;
+    --ui-text:#2A2823;
+    --ui-text-soft:#8A867C;
+    --shell-accent:#3E5C8A;
+
+    --paper:#FBF6EC;
+    --paper-deep:#F1E9D8;
+    --ink:#2E2B22;
+    --ink-soft:#5B5648;
+    --hairline: rgba(46,43,34,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:var(--font-main);
+    color:var(--ui-text);
+    height:100vh;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse at 12% 0%, rgba(255,255,255,0.10), transparent 55%),
+      linear-gradient(160deg, #4C6DA0 0%, #33487A 55%, #2A3B66 100%);
+    display:flex;
+    padding:22px;
+  }
+
+  /* ---------- 앱 쉘 (플레이리스트 느낌: 짙은 배경 + 둥근 흰 패널) ---------- */
+  .app-shell{
+    flex:1;
+    min-width:0;
+    background:var(--ui-panel);
+    border-radius:28px;
+    box-shadow:0 30px 70px rgba(10,18,40,0.38);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- 상단 바 ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;
+    height:56px;
+    background:var(--ui-panel);
+    border-bottom:1px solid var(--ui-border);
+    flex:none;
+  }
+  .topbar-left{display:flex;align-items:center;gap:12px;}
+  .topbar-title{font-size:13.5px;color:var(--ui-text-soft);font-weight:600;}
+  .topbar-right{display:flex;gap:8px;}
+  .btn{
+    font-family:var(--font-main);
+    font-size:13px;
+    border:1px solid var(--ui-border);
+    background:var(--ui-panel);
+    color:var(--ui-text);
+    padding:9px 15px;
+    border-radius:11px;
+    cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    transition:background 0.15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:hover{background:#F0EFEA;}
+  .btn:active{transform:scale(0.97);}
+  .btn.primary{
+    background:var(--shell-accent);
+    border-color:var(--shell-accent);
+    color:#fff;
+  }
+  .btn.primary:hover{filter:brightness(1.08);}
+  .btn:disabled{opacity:0.5;cursor:default;}
+
+  /* ---------- 레이아웃 ---------- */
+  .app{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+
+  .sidebar{
+    width:330px;
+    flex:none;
+    background:var(--ui-panel);
+    border-right:1px solid var(--ui-border);
+    overflow-y:auto;
+    padding:18px 18px 60px;
+  }
+
+  .section{
+    border-bottom:1px solid var(--ui-border);
+    padding:16px 0;
+  }
+  .section:first-child{padding-top:0;}
+  .section-title{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ui-text);
+    margin-bottom:12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .section-title .count{
+    font-weight:500;color:var(--ui-text-soft);font-size:11px;
+  }
+
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field-label{
+    display:block;
+    font-size:12px;
+    color:var(--ui-text-soft);
+    margin-bottom:6px;
+  }
+  .field input[type=text], .field textarea, .field select{
+    width:100%;
+    font-family:var(--font-main);
+    font-size:13.5px;
+    color:var(--ui-text);
+    background:#FAFAF8;
+    border:1px solid var(--ui-border);
+    border-radius:10px;
+    padding:9px 10px;
+    outline:none;
+  }
+  .field input[type=text]:focus, .field textarea:focus, .field select:focus{
+    border-color:var(--shell-accent);
+  }
+  .field textarea{resize:none;line-height:1.5;}
+
+  .date-row{display:flex;gap:8px;}
+  .date-row select{flex:1;}
+
+  /* 배경 투명도 슬라이더 */
+  .opacity-row{display:flex;align-items:center;gap:10px;}
+  .opacity-row input[type=range]{
+    flex:1;
+    -webkit-appearance:none;
+    appearance:none;
+    height:4px;
+    border-radius:4px;
+    background:var(--ui-border);
+    outline:none;
+  }
+  .opacity-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;border-radius:50%;
+    background:var(--shell-accent);
+    cursor:pointer;
+    border:2px solid #fff;
+    box-shadow:0 0 0 1px var(--shell-accent);
+  }
+  .opacity-row input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--shell-accent);
+    cursor:pointer;
+    border:2px solid #fff;
+    box-shadow:0 0 0 1px var(--shell-accent);
+  }
+  .opacity-row .opacity-value{
+    width:38px;flex:none;text-align:right;
+    font-size:12px;color:var(--ui-text-soft);
+  }
+
+  /* 방향/모드 토글 */
+  .toggle-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .toggle-row.layout-grid{display:grid;grid-template-columns:1fr 1fr;}
+  .toggle-btn{
+    flex:1;
+    padding:9px 0;
+    text-align:center;
+    font-size:13px;
+    border:1px solid var(--ui-border);
+    border-radius:10px;
+    background:#FAFAF8;
+    cursor:pointer;
+    color:var(--ui-text-soft);
+  }
+  .toggle-btn.active{
+    border-color:var(--shell-accent);
+    color:var(--shell-accent);
+    background:color-mix(in srgb, var(--shell-accent) 12%, white);
+    font-weight:700;
+  }
+
+  /* 컬러 스와치 */
+  .swatch-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+  .swatch{
+    width:25px;height:25px;border-radius:50%;
+    border:2px solid transparent;
+    cursor:pointer;
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .swatch.active{border-color:var(--ui-text);}
+  .swatch.custom{
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;border:1px dashed var(--ui-border);
+    font-size:13px;color:var(--ui-text-soft);
+    border-radius:50%;
+  }
+  .swatch input[type=color]{
+    opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;
+  }
+
+  /* 사진 업로드 */
+  .photo-upload-row{display:flex;align-items:center;gap:12px;}
+  .photo-thumb{
+    width:52px;height:52px;border-radius:50%;
+    background:#F0EFEA;border:1px solid var(--ui-border);
+    overflow:hidden;flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;}
+  .photo-thumb span{font-size:9.5px;color:var(--ui-text-soft);text-align:center;line-height:1.3;}
+  input[type=file]{display:none;}
+  .upload-btn{
+    font-family:var(--font-main);
+    font-size:12.5px;
+    border:1px solid var(--ui-border);
+    background:#FAFAF8;
+    padding:8px 12px;
+    border-radius:9px;
+    cursor:pointer;
+    color:var(--ui-text);
+  }
+
+  .hint-text{
+    font-size:11px;
+    color:var(--ui-text-soft);
+    line-height:1.6;
+    margin-top:10px;
+  }
+
+  .checkbox-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--ui-text);
+    cursor:pointer;
+  }
+  .checkbox-row input{width:16px;height:16px;cursor:pointer;accent-color:var(--shell-accent);}
+
+  /* ---------- 카드 목록 (인원수 관리) ---------- */
+  .card-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+  .card-row{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 9px;border-radius:12px;cursor:pointer;
+    border:1.5px solid transparent;
+    background:#FAFAF8;
+  }
+  .card-row:hover{background:#F1F0EB;}
+  .card-row.active{
+    background: color-mix(in srgb, var(--row-accent,#888) 12%, white);
+    border-color: var(--row-accent,#ccc);
+  }
+  .card-row .thumb{
+    width:32px;height:32px;border-radius:50%;flex:none;overflow:hidden;
+    background:#eee;border:2px solid var(--row-accent,#ddd);
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#999;
+  }
+  .card-row .thumb img{width:100%;height:100%;object-fit:cover;}
+  .card-row .info{flex:1;min-width:0;}
+  .card-row .info .nm{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ui-text);}
+  .card-row .info .meta{font-size:10px;color:var(--ui-text-soft);}
+  .card-row .del{
+    font-size:13px;color:var(--ui-text-soft);background:none;border:none;
+    cursor:pointer;padding:3px 7px;border-radius:7px;flex:none;
+  }
+  .card-row .del:hover{background:#F3E2DF;color:#C1443A;}
+
+  .add-card-btn{
+    width:100%;padding:10px;border:1.5px dashed var(--ui-border);border-radius:12px;
+    background:#FAFAF8;color:var(--ui-text-soft);font-size:12.5px;cursor:pointer;font-weight:600;
+  }
+  .add-card-btn:hover{background:#F0EFEA;color:var(--shell-accent);border-color:var(--shell-accent);}
+
+  /* ---------- 구성원(그룹 모드) 편집 ---------- */
+  .member-row{
+    border:1px solid var(--ui-border);border-radius:12px;padding:10px 11px;
+    margin-bottom:8px;background:#FAFAF8;
+  }
+  .member-top{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+  .member-top input[type=text]{flex:1;}
+  .rm-member{
+    background:none;border:none;color:var(--ui-text-soft);cursor:pointer;
+    font-size:13px;flex:none;padding:4px 6px;border-radius:6px;
+  }
+  .rm-member:hover{background:#F3E2DF;color:#C1443A;}
+  .member-date-row{display:flex;gap:6px;}
+  .member-date-row select{flex:1;font-size:12.5px;padding:7px 8px;}
+  .add-member-btn{
+    width:100%;padding:8px;border:1.5px dashed var(--ui-border);border-radius:10px;
+    background:#fff;color:var(--ui-text-soft);font-size:12px;cursor:pointer;font-weight:600;
+  }
+  .add-member-btn:hover{background:#F0EFEA;color:var(--shell-accent);border-color:var(--shell-accent);}
+
+  /* ---------- 미리보기 영역 ---------- */
+  .preview-area{
+    flex:1;
+    overflow:auto;
+    padding:44px 40px;
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(0,0,0,0.035), transparent 50%),
+      var(--ui-bg);
+  }
+  .preview-flow{display:flex; gap:38px;}
+  .preview-flow.dir-portrait{flex-direction:row; align-items:flex-start;}
+  .preview-flow.dir-landscape{flex-direction:column; align-items:center;}
+
+  .page-slot{display:flex;flex-direction:column;align-items:center;gap:10px;flex:none;}
+  .page-badge{
+    font-family:var(--font-serif);
+    font-style:italic;
+    font-size:12px;
+    color:var(--ui-text-soft);
+    letter-spacing:0.02em;
+  }
+
+  /* ---------- 카드 프레임 (배경색 = 테두리처럼) ---------- */
+  .card-frame{
+    background:var(--cardbg);
+    padding:16px;
+    border-radius:34px;
+    box-shadow:0 18px 42px rgba(20,24,40,0.18);
+    flex:none;
+  }
+
+  /* ---------- 카드 본체 (다운로드 대상) ---------- */
+  .card{
+    position:relative;
+    background:var(--paper);
+    font-family:var(--font-main);
+    color:var(--ink);
+    padding:36px 28px 28px;
+    width:360px;
+    border-radius:24px;
+    overflow:hidden;
+  }
+  .card.landscape{
+    width:620px;
+    display:grid;
+    grid-template-columns:186px 1fr;
+    gap:0 30px;
+    align-items:start;
+    padding:32px 34px;
+  }
+
+  .top-tag{
+    font-family:var(--font-serif);font-style:italic;
+    font-size:11px;color:var(--accent);opacity:0.8;
+    letter-spacing:0.04em;margin-bottom:14px;
+  }
+  .card.landscape .top-tag{grid-column:1/3;margin-bottom:6px;}
+
+  .profile-block{text-align:center;}
+  .card.landscape .profile-block{text-align:left;padding-top:2px;}
+
+  .photo-wrap{width:100px;height:100px;margin:0 auto 16px;position:relative;}
+  .card.landscape .photo-wrap{margin:0 0 14px;}
+  .photo-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--accent);pointer-events:none;}
+  .photo-ring::after{content:'';position:absolute;inset:6px;border-radius:50%;border:1px solid var(--hairline);}
+  .photo-circle-img{
+    position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);
+    border-radius:50%;object-fit:cover;display:block;background:var(--paper-deep);
+  }
+  .photo-circle-empty{
+    position:absolute;inset:10px;border-radius:50%;
+    background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:var(--ink-soft);text-align:center;line-height:1.4;
+  }
+
+  .card-name{
+    font-size:21px;font-weight:700;color:var(--ink);
+    margin-bottom:5px;word-break:keep-all;
+  }
+  .card-desc{
+    font-size:12.5px;color:var(--ink-soft);line-height:1.6;
+    word-break:keep-all;
+  }
+
+  .sprig-divider{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0;}
+  .card.landscape .profile-block .sprig-divider{justify-content:flex-start;margin:14px 0;}
+  .sprig-divider .line{height:1px;flex:1;background:var(--hairline);}
+  .card.landscape .profile-block .sprig-divider .line{max-width:40px;}
+  .sprig-divider svg{width:16px;height:16px;color:var(--accent);opacity:0.85;flex:none;}
+
+  .card-date{font-size:12px;color:var(--ink-soft);}
+  .card-date b{color:var(--accent);font-weight:700;}
+
+  /* 개인 모드 패널 (둥근 칩 스타일) */
+  .panels{margin-top:20px;display:flex;flex-direction:column;gap:12px;}
+  .card.landscape .panels{margin-top:0;}
+
+  .panel{
+    border-radius:18px;
+    padding:15px 17px 14px;
+  }
+  .panel-head{display:flex;align-items:center;gap:11px;margin-bottom:9px;}
+  .panel-icon{width:34px;height:34px;flex:none;}
+  .panel-icon svg{width:100%;height:100%;display:block;}
+  .panel-kind{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:2px;letter-spacing:0.02em;}
+  .panel-name{font-size:15.5px;font-weight:700;color:var(--ink);word-break:keep-all;}
+
+  .meaning-label{font-size:10.5px;color:var(--ink-soft);margin-bottom:3px;}
+  .meaning-value{font-size:13.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
+
+  /* ---------- 그룹 모드 ---------- */
+  .group-photo-wrap{width:100px;height:100px;margin:0 auto 14px;position:relative;}
+  .card.landscape .group-photo-wrap{margin:0 0 14px;}
+  .group-caption{
+    text-align:center;font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;
+  }
+  .card.landscape .group-caption{text-align:left;}
+
+  .member-list{margin-top:18px;display:flex;flex-direction:column;gap:12px;}
+  .card.landscape .member-list{margin-top:0;max-height:none;}
+
+  .member-block{
+    border-radius:20px;
+    padding:14px 16px 15px;
+  }
+  .member-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .member-head .mname{font-size:15px;font-weight:700;color:var(--ink);word-break:keep-all;}
+  .member-head .mdate{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;}
+  .member-mini{display:flex;gap:12px;}
+  .mini-item{flex:1;min-width:0;display:flex;gap:7px;align-items:flex-start;}
+  .mini-item .mi-icon{width:24px;height:24px;flex:none;margin-top:1px;}
+  .mini-item .mi-icon svg{width:100%;height:100%;display:block;}
+  .mini-item .mi-text{min-width:0;}
+  .mini-item .mi-kind{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:0.02em;}
+  .mini-item .mi-name{font-size:12px;font-weight:700;color:var(--ink);word-break:keep-all;line-height:1.3;}
+  .mini-item .mi-mean{font-size:10px;color:var(--ink-soft);word-break:keep-all;line-height:1.35;margin-top:1px;}
+
+  /* ---------- 사진 강조 레이아웃 (개인) ---------- */
+  .photo-hero{
+    width:100%;
+    border-radius:20px;
+    overflow:hidden;
+    background:var(--paper-deep);
+    margin-bottom:12px;
+    border:1px solid var(--hairline);
+  }
+  .photo-hero.empty{
+    aspect-ratio:4/3.1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .photo-hero img{width:100%;height:auto;display:block;}
+  .photo-hero span{font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.4;}
+
+  /* ---------- 사진 강조 레이아웃: 가로형에서 사진 칸을 넉넉하게 ---------- */
+  .card.landscape.layout-photo{width:680px;grid-template-columns:250px 1fr;}
+  .card.landscape.layout-photo.group-photo-layout{width:760px;grid-template-columns:270px 1fr;}
+
+  /* ---------- 전체 사진 레이아웃 (자유 배치) ---------- */
+  .card.full-photo-layout{
+    padding:0;
+    aspect-ratio:3/4.1;
+  }
+  .card.landscape.full-photo-layout{
+    display:block;
+    grid-template-columns:none;
+    width:620px;
+    aspect-ratio:16/10.2;
+    padding:0;
+  }
+  .full-photo-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .full-photo-bg-empty{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper-deep);color:var(--ink-soft);
+    font-size:13px;text-align:center;line-height:1.5;
+  }
+  .card.full-photo-layout .top-tag{
+    position:absolute;top:16px;left:20px;z-index:3;margin:0;
+    background:rgba(255,255,255,0.6);padding:5px 11px;border-radius:8px;
+  }
+  .free-item{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    width:190px;
+    background:rgba(251,246,236,0.95);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:14px;
+    padding:11px 14px;
+    cursor:grab;
+    box-shadow:0 8px 22px rgba(15,15,20,0.22);
+    z-index:2;
+    touch-action:none;
+    user-select:none;
+    box-sizing:border-box;
+  }
+  .free-item.has-size{overflow:auto;}
+  .free-item:active{cursor:grabbing;}
+  .free-item .card-name{font-size:15.5px;margin-bottom:3px;}
+  .free-item .card-desc{font-size:11px;}
+  .free-item .card-date{font-size:11.5px;margin-bottom:0;}
+  .free-item .mini-item{display:flex;gap:6px;align-items:flex-start;}
+  .free-item .mini-item + .mini-item{margin-top:8px;}
+  .free-item .mini-item .mi-icon{width:20px;height:20px;flex:none;margin-top:1px;}
+  .free-item .mini-item .mi-name{font-size:11.5px;}
+  .free-item .mini-item .mi-kind{font-size:8.5px;}
+  .free-item .member-list{gap:8px;}
+  .free-item .member-block{padding:9px 11px;border-radius:11px;}
+  .free-item .member-block .mname{font-size:12.5px;}
+  .free-item .member-block .mdate{font-size:9.5px;}
+
+  /* ---------- 중앙 사진 레이아웃 (가로 전용) ---------- */
+  .card.center-photo-layout.landscape{
+    width:720px;
+    display:grid;
+    grid-template-columns:1fr 220px 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:14px;
+    padding:30px;
+  }
+  .card.center-photo-layout.landscape.group-center{grid-template-rows:1fr;}
+  .card.center-photo-layout.landscape .top-tag{grid-column:1/4;margin-bottom:2px;}
+  .center-photo-hero{
+    grid-column:2;grid-row:1/3;
+    border-radius:20px;overflow:hidden;
+    background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .group-center .center-photo-hero{grid-row:1;}
+  .center-photo-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+  .center-photo-hero span{font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.4;}
+  .center-quad{
+    border-radius:16px;
+    padding:14px 15px;
+    display:flex;flex-direction:column;justify-content:center;
+    min-width:0;
+  }
+  .center-quad.tl{grid-column:1;grid-row:1;}
+  .center-quad.bl{grid-column:1;grid-row:2;}
+  .center-quad.tr{grid-column:3;grid-row:1;}
+  .center-quad.br{grid-column:3;grid-row:2;}
+  .center-quad.left-full{grid-column:1;grid-row:1;}
+  .center-quad.right-full{grid-column:3;grid-row:1;}
+  .center-quad.member-quad{
+    padding:10px 12px;
+    overflow-y:auto;
+    min-height:0;
+    max-height:480px;
+    justify-content:flex-start;
+  }
+  .center-quad.member-quad .member-list{gap:8px;margin-top:0;}
+  .center-quad.member-quad .member-block{padding:10px 12px;border-radius:12px;}
+  .center-quad .card-name{font-size:16px;margin-bottom:4px;}
+  .center-quad .card-desc{font-size:11.5px;}
+  .center-quad .card-date{font-size:12px;}
+  .center-quad .panel-head{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+  .center-quad .panel-icon{width:26px;height:26px;flex:none;}
+  .center-quad .panel-icon svg{width:100%;height:100%;display:block;}
+  .center-quad .panel-kind{font-size:9px;color:var(--accent);font-weight:700;margin-bottom:1px;}
+  .center-quad .panel-name{font-size:13.5px;font-weight:700;color:var(--ink);word-break:keep-all;}
+  .center-quad .meaning-label{font-size:9.5px;color:var(--ink-soft);margin-bottom:2px;}
+  .center-quad .meaning-value{font-size:11.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
+
+  /* ---------- 사진 편집 버튼 ---------- */
+  .edit-photo-btn{
+    font-family:var(--font-main);
+    font-size:12.5px;
+    border:1px solid var(--ui-border);
+    background:#fff;
+    padding:8px 12px;
+    border-radius:9px;
+    cursor:pointer;
+    color:var(--shell-accent);
+  }
+  .edit-photo-btn:hover{background:#F0EFEA;}
+
+  /* ---------- 이미지 크롭 모달 ---------- */
+  .crop-modal-overlay{
+    position:fixed;inset:0;background:rgba(20,22,30,0.55);
+    display:none;align-items:center;justify-content:center;
+    z-index:999;padding:20px;
+  }
+  .crop-modal-overlay.show{display:flex;}
+  .crop-modal{
+    background:#fff;border-radius:18px;width:100%;max-width:520px;
+    overflow:hidden;box-shadow:0 30px 70px rgba(10,18,40,0.4);
+    display:flex;flex-direction:column;max-height:90vh;
+  }
+  .crop-modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--ui-border);
+    font-size:14px;font-weight:700;color:var(--ui-text);flex:none;
+  }
+  .crop-close{background:none;border:none;font-size:15px;color:var(--ui-text-soft);cursor:pointer;padding:4px 6px;}
+  .crop-modal-body{
+    background:#111214;
+    height:min(58vh,420px);
+    flex:none;
+    position:relative;
+  }
+  .crop-image-wrap{width:100%;height:100%;}
+  .crop-image-wrap img{max-width:100%;display:block;}
+  .crop-modal-controls{padding:14px 18px;flex:none;border-bottom:1px solid var(--ui-border);}
+  .crop-aspect-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .crop-aspect-btn{
+    font-family:var(--font-main);font-size:12px;padding:7px 12px;border-radius:9px;
+    border:1px solid var(--ui-border);background:#FAFAF8;color:var(--ui-text-soft);cursor:pointer;
+  }
+  .crop-aspect-btn.active{border-color:var(--shell-accent);color:var(--shell-accent);background:color-mix(in srgb, var(--shell-accent) 12%, white);font-weight:700;}
+  .crop-tool-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .crop-tool-btn{
+    font-family:var(--font-main);font-size:13px;padding:7px 12px;border-radius:9px;
+    border:1px solid var(--ui-border);background:#FAFAF8;color:var(--ui-text);cursor:pointer;
+  }
+  .crop-tool-btn:hover{background:#F0EFEA;}
+  .crop-modal-footer{
+    display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;flex:none;
+  }
+
+  /* ---------- 반응형 ---------- */
+  @media (max-width:900px){
+    body{padding:0;}
+    .app-shell{border-radius:0;}
+    .app{flex-direction:column;overflow:auto;}
+    .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--ui-border);max-height:none;overflow:visible;}
+    .app-shell{overflow:auto;}
+    .preview-area{padding:26px 14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">탄생화 · 탄생석 카드 메이커</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn primary" id="downloadOneBtn">이미지로 저장</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ============ 좌측 편집 패널 ============ -->
+  <div class="sidebar">
+
+    <div class="section">
+      <div class="section-title">카드 방향 <span class="count">전체 적용</span></div>
+      <div class="toggle-row">
+        <div class="toggle-btn active" data-orientation="portrait">세로형</div>
+        <div class="toggle-btn" data-orientation="landscape">가로형</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">폰트 <span class="count">전체 적용</span></div>
+      <div class="field">
+        <select id="fontSelect">
+          <option value="pretendard">프리텐다드</option>
+          <option value="paperlogy">페이퍼로지</option>
+          <option value="nanumsquare">나눔스퀘어</option>
+          <option value="gmarket">지마켓 산스</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">카드 목록 <span class="count" id="cardCountLabel">1명</span></div>
+      <div class="card-list" id="cardListEl"></div>
+      <button class="add-card-btn" id="addCardBtn">+ 인원 추가</button>
+    </div>
+
+    <div id="cardEditorMount"></div>
+
+  </div>
+
+  <!-- ============ 우측 미리보기 ============ -->
+  <div class="preview-area">
+    <div class="preview-flow dir-portrait" id="previewFlow"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ============ 이미지 크롭 모달 ============ -->
+<div class="crop-modal-overlay" id="cropModalOverlay">
+  <div class="crop-modal">
+    <div class="crop-modal-head">
+      <span>사진 편집</span>
+      <button class="crop-close" id="cropCloseBtn">✕</button>
+    </div>
+    <div class="crop-modal-body">
+      <div class="crop-image-wrap">
+        <img id="cropImageEl" src="" alt="">
+      </div>
+    </div>
+    <div class="crop-modal-controls">
+      <div class="crop-aspect-row" id="cropAspectRow">
+        <button type="button" class="crop-aspect-btn" data-ratio="free">자유</button>
+        <button type="button" class="crop-aspect-btn" data-ratio="1">1:1</button>
+        <button type="button" class="crop-aspect-btn" data-ratio="1.3333">4:3</button>
+        <button type="button" class="crop-aspect-btn" data-ratio="0.75">3:4</button>
+        <button type="button" class="crop-aspect-btn" data-ratio="1.7778">16:9</button>
+      </div>
+      <div class="crop-tool-row">
+        <button type="button" class="crop-tool-btn" id="cropZoomOutBtn">축소 －</button>
+        <button type="button" class="crop-tool-btn" id="cropZoomInBtn">확대 ＋</button>
+        <button type="button" class="crop-tool-btn" id="cropRotateLeftBtn">⟲ 회전</button>
+        <button type="button" class="crop-tool-btn" id="cropRotateRightBtn">⟳ 회전</button>
+        <button type="button" class="crop-tool-btn" id="cropResetBtn">초기화</button>
+      </div>
+    </div>
+    <div class="crop-modal-footer">
+      <button class="btn" id="cropCancelBtn">취소</button>
+      <button class="btn primary" id="cropApplyBtn">적용</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+// ============ 날짜별 데이터 (빡세다 블로그 365일 정리 원문 그대로) ============
+// [탄생화, 꽃말, 탄생석, 의미] 형식, 월(0~11) x 일(1~31)
+const BIRTH_DATA = [
+[["스노드롭","희망","임페리얼 제이드","불노불사"],["노랑 수선화","사랑에 답하여","랜드스케이프 아게이트","불행을 막아줌"],["사프란","후회 없는 청춘","토패저라이트","좋은 소식"],["히아신스","차분한 사랑","크리소콜라","정신의 안정"],["노루귀","인내","골든 지르콘","슬픔과 의혹의 제거"],["흰제비꽃","순진무구한 사랑","스타 가넷","성스러운 실행력"],["튤립","실연","암모라이트","과거의 추억"],["보랏빛 제비꽃","사랑","크롬 토르마린","내면의 증강"],["노랑 제비꽃","수줍은 사랑","하이드로 그로슐라라이트","사랑의 달성"],["회양목","참고 견뎌냄","골드","확실한 조언과 힘"],["측백나무","견고한 우정","스페큘러 라이트","자기 인식"],["스위트 알리섬","빼어난 미모","옵시디언","잡념의 제거"],["수선화","신비","파울러라이트","맺어지는 사랑"],["시클라멘","내성적 성격","프레쉬 워터 펄","조화로운 애정"],["식물","엄격","피죤 블러드","불멸"],["노랑 히아신스","승부","블루문 스톤","성인의 사랑"],["수영","친근한 정","안티몬","사악함으로부터의 방어"],["어저귀","억측","로제라이트","희망의 상징"],["소나무","불로장수","암블리고나이트","불멸의 힘"],["미나리아재비","천진난만","스노우프레이크 옵시디언","사랑의 유지"],["당쟁이덩굴","우정","피콕 컬러 오팔","구애의 예감"],["이끼","모성애","스타베릴","은총"],["부들","순종","알렉잰드라이프 가넷","주야의 변모"],["사프란","절도의미","밀키 쿼츠","모성애"],["점나도나물","순진","사도닉스","행복한 결혼"],["미모사","예민한 마음","파이롭","업화"],["마가목","게으름을 모르는 마음","알만다인","실행력의 승리"],["검은미루나무","용기","핑크 토파즈","지력과 체력의 회복"],["이끼","모성애","팬텀 크리스털","얼음 화석"],["매쉬메리골드","반드시 오고야 말 행복","파티컬러드 플로라이트","과거와 미래"],["노란 사프란","청춘의 환희","알렉산드라이트 캣츠 아이","망설임과 선택과 변신"]],
+[["앵초","젊은 시절과 고뇌","유렉사이트","꿰뚫어 보는 마음"],["모과","평범","콩크 펄","가장 사랑하는 사람"],["황새냉이","그대에게 바친다","메라나이트","투쟁과 목표의 달성"],["빨간 앵초","돌보지 않는 아름다움","바이컬러 아메시스트","깨달음"],["양치","사랑스러움","프람 스톤","난관을 이기다"],["바위솔","가사에 근면함","그레이 스타 사파이어","새벽에 전해진 좋은 소식"],["물망초","날 잊지 말아요","컨곰","규율과 수호"],["범의귀","절실한 애정","루틸 레이티드 쿼츠","가정의 평화"],["은매화","사랑의 속삭임","레드 재스퍼","올바른 판단"],["서향","영광","레드 타이거 아이","운명의 파괴와 창조"],["멜리사","동정","워터원","시간의 흐름"],["쥐꼬리망초","가련미의 극치","옐로우 스피넬","자기애 사랑의 적령기"],["갈풀","끈기","바이컬러 플로라이트","두 얼굴의 매력"],["카모밀레","역경에 굴하지 않는 강인함","핑크 오팔","사랑의 만남"],["삼나무","그대를 위해 살다","핑크 지르콘","고통의 완화"],["월계수","명예","드라바이트","인생의 전개"],["야생화","친숙한 자연","타이거 아이언","용맹, 강한 신념"],["미나리아재비","천진난만","오렌지 토파즈","지혜와 논리"],["떡갈나무","붙임성이 좋음","워터 드롭 쿼츠","생명"],["칼미아","커다란 희망","브라운 오닉스","정절"],["네모필라","애국심","혼","애타는 사랑"],["무궁화","미묘한 아름다움","캣츠 아이 쿼츠","미래의 예감"],["살구꽃","아가씨의 수줍음","체리 핑크 루비","사랑의 의혹"],["빙카","즐거운 추억","화이트 펄","겸양과 성의"],["사향장미","변덕스런 사랑","팬텀 아메시스트","환영"],["아도니스","추억","골드 쿼츠","세계를 보는 눈"],["아라비아의 별","순수","큐프라이트","다면성"],["보리","일치단결","카모라트 코랄","견디는 마음"],["아르메리아","배려","패러사이트","만물을 향한 비상"]],
+[["수선화","자존","플로라이트","비밀의 사랑"],["미나리아재비","아름다운 인격","쉘 오팔","화합, 합체"],["자운영","나의 행복","핑크 베릴","매력적인 배려심"],["나무딸기","애정","실버","젊음의 주장"],["수레국화","행복감","로얄 블루 사파이어","행운과 천명"],["데이지","명랑","코펄","정과 동"],["황새냉이","사무치는 그리움","아크로아이트","투명"],["밤꽃","진심","스미스소나이트","수호"],["낙엽송","대담","실버 펄","숭배"],["느릅나무","고귀한","하울라이트","숭고한 상징"],["씀바귀","순박함","이네사이트","정열"],["수양버들","사랑의 슬픔","카야사이트","순종, 청정"],["산옥잠화","사랑의 망각","옐로우 다이아몬드","변화하는 평화"],["아몬드","희망","컬러리스 스피넬","순진"],["독당근","죽음도 아깝지 않음","오렌지 문스톤","사랑의 촉진"],["박하","미덕","로즈 쿼츠","사랑의 전하다"],["콩꽃","반드시 오고야 말 행복","다이옵테이스","자유로운 삶"],["아스파라거스","무변화","카올리나이트","배려심"],["치자나무","한없는 즐거움","바이컬러 쿼츠","봄의 방문"],["보라색 튤립","영원한 애정","유클레이스","면밀한 조사"],["벚꽃난","인생의 출발","아이언","강인한 힘"],["당아욱","은혜","소그디어나이트","생명의 재생"],["글라디올어스","정열적인 사랑","필춰드 재스퍼","몽상"],["금영화","희망","그린 쿼츠","감정을 가라앉히다"],["덩굴성 식물","아름다움","피치 지르콘","고통의 구원"],["흰앵초","첫사랑","플래티넘","다감한 마음"],["칼세올라리아","도움","퍼플 지르콘","너무 많은 대화"],["꽃아카시아나무","품위","펑크 다이아몬드","사랑의 도래"],["우엉","괴롭히지 말아요","그린 다이아몬드","우아"],["금작화","청초","엔젤 스킨 코랄","변치 않는 마음"],["흑종초","꿈길의 애정","아서클레이스","목적 달성"]],
+[["아몬드","진실한 사랑","히키마 다이아몬드","꿈"],["어네모네","기대","셀리스타이트","영혼의 정화"],["나팔수선화","존경","제오라이트","재생, 대지의 은혜"],["빨강 아네모네","그대를 사랑해","젬실리카","행운과 번영"],["무화과","풍부","컬러리스 사파이어","성스러운 힘 빛나는 지성"],["아도니스","영원한 행복","블루 다이아몬드","만전"],["공작고사리","신명","블라질리아나이트","이지적"],["금작화","박애","파파라치아 사파이어","빛의 꽃"],["벚나무","정신미","세라사이트","정신미, 고결함"],["빙카","즐거운 추억","화이트 지르콘","모든 것을 건 마음"],["꽃고비","와주세요","블루나이트","공격적인 느낌"],["복사꽃","사랑의 노예","핑크 플로라이트","환상적"],["페르시아 국화","경쟁심","바이올렛 펄","자존심, 도도함"],["흰나팔꽃","넘치는 기쁨","컬러리스 토파즈","지성을 가진 천재"],["펜 오키드","훌륭한","피콕 그린 펄","자연에 대한 사랑"],["튤립","아름다운 노동자","히데나이트","청정, 겸허"],["독일창포","멋진 결혼","그린 스피넬","희망과 신앙 행운"],["자운영","감화","액서나이트","노력의 계속"],["참제비고깔","청명","바이올렛 지르콘","새속성과 정신성"],["배나무","온화한 애정","클로러멜라나이트","거짓과 진실"],["수양버들","내 가슴의 슬픔","맨덜루사이트","사랑의 예감"],["과꽃","믿음직한 사랑","애스트로핖라이트","믿는 사랑"],["도라지","상냥하고 따뜻함","디저트 로즈","사랑과 지성"],["제라늄","결심","쿤차이트","연인 도래의 조짐"],["중국 패모","위엄","플라즈마","양자택일의 결단"],["논냉이","불타는 애정","스기라이트","영원불변한 사랑"],["수련","청순한 마음","카넬리안","명석한 사고"],["빨간 앵초","비할바 없는 아름다움","킴버라이트","사랑의 수호"],["동백나무","매력","로드스톤","시종일관"],["금사슬나무","슬픈 아름다움","실리마나이트","경고"]],
+[["카우슬립 앵초","젊은 날의 슬픔","아마조나이트","시기가 도래하다"],["미나리아재비","천진난만함","옐로우 베릴","견디는 사랑"],["민들레","신탁","그린 지르콘","평화의 소원"],["딸기","존중과 애정","포스테라이트","위대한 힘"],["은방울꽃","섬세함","레드 크랄","어린 마음"],["비단향나무 꽃","영원한 아름다움","아이드크레이스","약속"],["딸기 (잎)","사랑과 존경","클리다이트","마음의 성장"],["수련","천순한 마음","에메랄드 캣츠 아이","상상력"],["겹벚꽃","정숙, 단아함","블랙 펄","조용한 강인함"],["꽃창포","우아한 마음","로빈스 에그 블루","해방된 마음"],["사과","유혹","레이스 아게이트","침착한 용기"],["라일락","사랑의 싹","카콕서나이트","의식의 도달"],["산사나무","유일한 사랑","아이보리","청순, 윤리적 힘"],["매발톱꽃","승리의 맹세","블루 그린 지르콘","떠나가는 고통"],["물망초","진실한 사랑","레드 제나이트","결단력"],["조팝나물","선언","텍타이트","자유"],["노랑 튤립","사랑의 표시","퍼플 사파이어","첫사랑의 추억"],["옥슬립 앵초","첫사랑","고제나이트","기품"],["아리스타타","아름다움의 소유자","노제라이트","위기를 극복하다"],["괭이밥","빛나는 마음","자라타이트","내면의 힘"],["담홍색 참제비고깔","자유","오퍼라이즈드 우드","융합과 동조"],["귀고리꽃","열렬한 마음","덴드리틱 쿼츠","만족스러운 성장"],["풀의 싹","첫사랑의 추억","앤드라다이트","충성심"],["헬리오토로프","사랑이여 영원하라","아듀라리아","계획"],["삼색제비꽃","순애","블루 앰버","조용히 타오르는 마음"],["올리브나무","평화","코퍼","사랑의 노예"],["데이지","순수한 마음","바데라이트","인내"],["박하","미덕","화이트 칼세도니","우아"],["토끼풀","쾌활","잘로스톡","행운의 승리"],["보라빛 라일락","사랑의 싹이트다","차보라이트","영향력"],["무릇","강한 자제력","스모키 쿼츠","안식"]],
+[["장미","나의 마음 그대만이 아네","컬러 체인지 사파이어","이면성"],["빨강 매발톱꽃","솔직","클리어 앰버","꿈의 실현"],["아마","감사","페나사이트","기분 일소"],["장미","아름답게 빛나는 얼굴 모습","오돈라이트","공격과 방어"],["메리골드","가련한 애정","알렉산드라이트","이면성"],["노랑 붓꽃","믿는 자의 행복","실리시피어드우드","융합과 변화"],["슈미트티아나","사모하는 마음","펑크 펄","인내심 강한 사랑"],["제스민","사랑스러움","새니딘","초능력과의 융합"],["스위트피","우아한 추억","우렉사이트","두뇌 명석"],["수명패랭이꽃","의협심","쿼츠","조화, 통합, 강화"],["중국패모","위엄","화이트 래브라도라이트","좋은 소문"],["레제다 오도라타","매력","마베 펄","매력"],["디기탈리스","가슴 속의 생각","우바로바이트","소심함, 마음을 빼앗길기질"],["뚜껑별꽃","추상","시프린","견식"],["카네이션","정열","옐로우 재스퍼","여행의 안전"],["튜베로즈","위험한 쾌락","블루 오팔","상쾌한 애정표현"],["토끼풀","감화","넵튜나이트","생명의 영속성"],["백리향","용기","아르젠타이트","사악함으로부터의 방어"],["장미","사랑","블랙스타 사파이어","진혼"],["꼬리풀","달성","그린 플로라이트","숨은미덕"],["달맞이꽃","자유스러운 마음","서펀틴","보호"],["가막살 나무","사랑은 죽음보다 강하다","선스톤","광채"],["접시꽃","열렬한 연애","안욜라이트","소극적인 사랑"],["바베나","가족의 화합","워터 오팔","처녀의 연심"],["나팔꽃","덧없는 사랑","말라카이트","통찰력과 상상력"],["흰 라일락","아름다운 맹세","스페샤르타이트","충실 복종하는 마음"],["시계꽃","성스러운 사랑","리디코타이트","다채로운 매력"],["제라늄","그대가 있기에 행복이 있네","블루 지르콘","환각, 꿈꾸는 마음"],["빨강 제라늄","그대가 있기에 사랑이 있네","재스퍼","자기 제어"],["인동","사랑의 인연","유렉사이트 캣츠 아이","마음의 눈"]],
+[["단양쑥부쟁이","태만","블러드샷 아이오라이트","방향의 시사"],["금어초","욕망","배리사이트","자연의 숙성"],["흰색 양귀비","망각","록 크리스탈","유쾌한 마음"],["자목련","자연애","다이옵사이트","행운으로 가는 이정표"],["라벤더","풍부한 향기","아나테스","미래의 행운"],["해바라기","애모","아파치 티어","불가사의"],["서양까치밥나무","예상","스타로즈 쿼츠","만남"],["버드푸트","다시 만날 날까지","밀키 오팔","설렘"],["아이비 제라늄","진실한 애정","브라운 다이아몬드","불굴의 신념"],["초롱꽃","감사","스포듀언","무한의 사랑"],["아스포델","나는 당신의 것","크림 펄","새로운 만남"],["좁은입배풍등","참을 수 없어","레드 베릴","고차원적인 의식"],["잡초의 꽃","실제적인 사람","크리스 베릴","광채"],["프록스","온화","쓰리컬러 플로라이트","다면성"],["들장미","사랑스러움","거사이트","영능력"],["비단향꽃무","영원한 아름다움","아이즈라이트","명상력"],["흰색장미","존경","어벤춰린","빛나는 미래"],["이끼 장미","가련함","래브라도라이트 펠드스퍼","밀회"],["백부자","아름답게 빛나다","하이드로 로드크로사이트","정의"],["가지","진실","아쿠아마린 캣츠 아이","광명"],["노랑장미","아름다움","블루 재스퍼","감정의 조정"],["패랭이꽃","사모","블라워 옵시디언","새로운 출발"],["장미","아름다움","워터메론 토르마린","겹치는 행운"],["연령초","그윽한 마음","워터라이트","독과 정화"],["말오줌나무","열심","쉘","아름다운 맹세"],["향쑥","평화","퍼실 로랄","정복"],["제라늄","진실한 애정","그레이 다이아몬드","조역부터 출발"],["패랭이꽃","언제나 사랑","알만다인 스피넬","영혼과의 교류"],["선인장","불타는 마음","블랙 오팔","위협"],["서양종 보리수","부부애","에피도르","과거로부터의 해방"],["호박","광대함","레드 지르콘","평안"]],
+[["빨간 양귀비","위로","시트린","달콤한 추억"],["수레국호","행복","블루 쿼츠","생명의 탄생"],["수박풀","아가씨의 아름다운 자태","크리스베릴 캣츠 아이","황금의 눈동자"],["옥수수","재보","마카사이트","추억과 동경"],["앨리카","고독","캣츠 아이 문스톤","사랑의 기회"],["능소화","명예","다크그린 지르콘","정신의 위안"],["석류","원숙한 아름다움","옐로우 애퍼타이트","의혹"],["진달래","사랑의 희열","루틸","사랑의 화살"],["시스터스","인기","캐커파이라이트","망각의 제거"],["이끼","모성애","아이오라이트","영적 능력을 높이다"],["빨강무늬제라늄","위안","옐로우 사파이어","집중력"],["협죽도","위험","칸커 아게이트","자연의 행방"],["골든 로드","경계","옐로우 지르콘","출산의 슬픔"],["저먼더","경애","파이어 오팔","사랑하는 사람"],["해바라기","광휘","블루레스 아게이트","영혼의 움직임"],["타마린드","사치","래브라도라이트","사모"],["튤립나무","전원의 행복","파이라이트","보호력"],["접시","열렬한 사랑","오렌지 펄","회복"],["로사 캠피온","성실","캘사이트","영화와 번영"],["프리지아","순결","스타루비","중심"],["짚신나불","감사","제트","망각"],["스피리아","노력","화이트 코랄","정결"],["서양종 보리수","부부애","이오스포라이트","변치 않는 사랑을 바치다"],["금잔화","이별의 슬픔","러버","연인"],["안스륨","사랑에 번민하는 마음","파이어 아게이트","정념"],["하이포시스 오리어","빛을 찾다","터콰이즈 블루","신성한 사랑"],["고비","몽상","아파타이트","혼동"],["에린지움","비밀스런 애정","핑크 코랄","자비로운 사랑"],["꽃담배","그대 있어 외롭지 않네","캑터스 아메시스트","변화"],["저먼더","담백","레인보우 옵시디언","각양각색"],["토끼풀","약속","모스 아게이트","마음의 영양"]],
+[["호랑이꽃","나를 사랑해주세요","덴더나이트","긍지 높은 사람"],["멕시칸 아이비","변화","그레이 펄","쟁취하는 사랑"],["마거리트","마음속에 감춘 사랑","레드 다이아몬드","탄생의 비밀"],["뱀무","만족된 사랑","스핀","우주적 의사 소통"],["느릅나무","신뢰","골든 펄","성숙"],["한련","애국심","조아사이트","영력의 상징"],["오렌지","새색시의 기쁨","히아신스","안심"],["갓","무관심","아쿠아 펄","품격"],["갓개매취","추억","아라고나이트","능력의 발휘"],["흰색 과꽃","믿는 마음","댄버라이트","폭넓은 지상"],["알로에","꽃도 잎새도","레인보우 플로라이트","소원 성취"],["클레마티스","마음의 아름다움","파이어라이트","운명적 인연"],["버드나무","솔직","골든 베릴","찬란했던 좋은 날"],["마르멜로","유혹","아이언 로즈","용기, 구원의 힘"],["다알리아","화려함","파라이바 토르마린","원점 회귀"],["용담","슬픈 그대가 좋아","프레나이트","건강한 아름다움"],["에리카","고독","다이옵테이스","재회"],["엉겅퀴","엄격","만다린 가넷","유복"],["사초","자중","래쥴라이트","명상력"],["로즈메리","나를 생각해요","블루 스피넬","사랑의 자극"],["사프란","후회스런 청춘","세레나이트","자기의식"],["퀘이킹 그라스","흥분","지르콘","순수"],["주목","고상함","아메트린","빛과 그림자"],["오렌지","새색시의 기쁨","디매토이드","질주"],["메귀리","음악을 좋아함","바이컬러 토르마린","대칭과 조화"],["감","자연미","오렌지 다이아몬드","약속된 사랑"],["떡갈나무","사랑은 영원히","트라피체 사파이어","자유로운 삶"],["색비름","애정","아메시스트 쿼츠","냉정한 사고"],["사과","명성","임페리얼 토파즈","탁월한 힘"],["삼나무","웅대","블루스타 사파이어","지식의 인도"]],
+[["빨강 국화","사랑","엘바이트","재현"],["살구","아가씨의 수줍음","하이 쿼츠","달성"],["단풍나무","자제","바이올렛 다이아몬드","매력적인 관계"],["홉","순진무구","오팔 재스퍼","정확한 간격"],["종려나무","승리","라리마","조용한 관찰"],["개암나무","화해","크리소프레이즈","풍요, 기쁨"],["전나무","고상함","로드나이트","자신을 높임"],["파슬리","승리","블루 칼세도니","추억"],["희향","극찬","블루 오닉스","좋은 소식"],["멜론","포식","토르마린 캣츠 아이","개안"],["부처꽃","사랑의 슬픔","로드 라이트","사랑의 행동력"],["월귤","반항심","파티컬러드 사파이어","증오의 완화"],["조팝나무","단정한 사랑","헤마타이트","승리의 인도"],["흰색 국화","진실","트리피체 에메랄드","회전"],["스위트 바즐","좋은 희망","어벤춰린 쿼츠","사랑의 기회"],["이끼장미","순진무구","화이트 오닉스","성공"],["포도","신희","마그네타이트","두려움을 없애다"],["넌출월귤","마음의 고통을 위로하다","블루 아게이트","예술성"],["빨강 봉선화","날 건드리지 마세요","스키라베","부활 영원한 생명"],["마","운명","캘커시더라이트","소원"],["엉겅퀴","독립","쇼울","사랑의 충전"],["벗풀","신뢰","레피도라이트","변혁"],["흰독말풀","경애","튤라이트","신비성, 회복"],["매화","고결한 마음","인디고라이트","예술적 센스"],["단풍나무","염려","레드 스피넬","호기심"],["수영","애정","타이거 아이 쿼츠","꿰뚫어보는 능력"],["들장미","시","오우원","성스러운 업적"],["무궁화","미묘한 아름다움","콘플라워 블루 사파이어","완전한 직선"],["해당화","이끄시는대로","메이트릭스 더콰이즈","통찰력과 상상"],["로벨리아","악의","핀파이어 오팔","올바른 방향성"],["칼라","열혈","호크아이","결단과 전진"]],
+[["서양모과","유일한 사랑","시나몬 스톤","성공의 찬스"],["루피너스","모성애","블랙 오닉스","종교적 사색"],["브리오니아","거절","골든 사파이어","빛나는 매력과 광명"],["골고사리","진실의 위안","셉터 쿼츠","탄생의 기쁨"],["단양쑥부쟁이","공훈","네프라이트","시선의 매력"],["등골나물","주저","스패러라이트","조화와 중용"],["메리골드","이별의 슬픔","피트 앰버","포용, 큰 사랑"],["가는동자꽃","기지","레드 토파즈","생명과 번영"],["물약의 꽃","진실","토터스 쉘","장수, 심원"],["부용","섬세한 아름다움","퍼실","선조의 가호"],["흰동백","비밀스런 사랑","블랙 다이아몬드","행복의 시작"],["레몬","진심으로 사모함","바이올렛 사파이어","화려한 변신"],["레몬 버베나","인내","크리스털 오팔","내면의 충실함"],["소나무","불로장생","라벤더 제이드","약간의 소문"],["황금싸리","겸손","크림슨 코랄","관용 냉정한 애정"],["크리스마스 로즈","추억","암모나이트","가변하는 사고"],["머위","공평","그린 루틸 쿼츠","기회를 잡다"],["산나리","장엄","암소피라이트","관용 풍부한 사랑"],["범의귀","비밀","블루 토파즈","교양과 학문"],["뷰글라스","진실","헤소나이트","자기 암시의 힘"],["초롱꽃","성실","화이트 제다이트","정화된 영혼"],["매자나무","까다로움","옐로우 오팔","숨은 본능"],["양치","성실","케시 펄","일시적인 휴식"],["가막살나무","사랑은 죽음보다 강하다","코발트 캘사이트","초조함의 해방"],["개옻나무","현명","레드 앰버","소악마의 매력"],["서양톱풀","지도","스캐포라이트","미래 지향"],["붉나무","신앙","페트리라이드 우드","융합"],["과꽃","추상","오렌지슈 브랑누 토파즈","보호, 포용력"],["바카리스","개척","알랙잰드라이프 토르마린","사랑과 성"],["낙엽, 마른풀","새봄을 기다림","스타 엔스테타이트","깊은 신뢰"]],
+[["쑥국화","평화","아이언 오팔","배려있는 행동"],["이끼","모성애","블랙 코랄","냉정한 기지"],["라벤더","기대","메테오라이트","영혼의 재래"],["수영","애정","소더라이트","잠재의식과 현재의식"],["앰브로시아","행복한 연애","엔젤라이트","빛나는 진리"],["바위취","절실한 사랑","엔스테타이트","순수한 정의감"],["양치","신뢰","짚섬","풍요로운 대지"],["갈대","깊은 애정","루벨라이트","적극적인 행동"],["국화","고결","애러배스터","승리를 가져오다"],["빨강 동백","고결한 이성","블루 존 플로라이트","선조의 가호"],["단양쑥부쟁이","애국심","캐시터라이트","치밀한 계획"],["목화","우수","소프트핑크 지르콘","묘약"],["자홍색 국화","사랑","애퍼피라이트","영적인 통찰력"],["소나무","용감","핑크 사파이어","가련함"],["서향","불명","트라피체 루비","변신과 도전"],["오리나무","장엄","아쥬르말라카이트","협조성"],["벚꽃난","동감","스펙트로파이트","정열적이고 위험한 사랑"],["세이지","가정의 덕","토르마린 레이티드 쿼츠","대립의 결함"],["스노 플레이크","아름다움","화이트 오팔","신의 수호"],["파인애플","완전무결","헤미몰파이트","쌍극"],["박하","덕","블랙 문스톤","두 사람의 출발"],["백일홍","행복","우바이트","넓은 사고"],["플라타너스","천재","오렌지 제이드","따뜻한 고백"],["겨우살이","강한 인내심","스토러라이트","가한 보호력"],["사양호랑가시나무","선견지명","크로스스톤","성스러운 계약"],["크리스마스 로즈","추억","퍼플 다이아몬드","숨은 비밀"],["매화","맑은 마음","몰다바이트","애정의 증거"],["석류","원숙미","로드크로사이트","새로운 사랑을 부르다"],["꽈리","자연미","파우스타이트","부활, 생명력"],["납매","자애","커스머클러","자연의 지식"],["노송나무","불멸","야호이트","온갖 정화"]]
+];
+
+const MONTH_DAYS = [31,29,31,30,31,30,31,31,30,31,30,31];
+
+function getBirthInfo(month, day){
+  const arr = BIRTH_DATA[month-1][day-1];
+  return {flower:arr[0], fmean:arr[1], gem:arr[2], gmean:arr[3]};
+}
+
+const FONT_MAP = {
+  pretendard:"'Pretendard', sans-serif",
+  paperlogy:"'Paperlogy', 'Pretendard', sans-serif",
+  nanumsquare:"'NanumSquare', 'Pretendard', sans-serif",
+  gmarket:"'GmarketSansMedium', 'Pretendard', sans-serif"
+};
+
+const ACCENT_SWATCHES = ['#2F3E6B','#C1665A','#3F7052','#6B5B95','#B8934A','#4A4A46'];
+const PAPER_HEX = '#FBF6EC';
+
+// html2canvas가 CSS color-mix()를 안정적으로 처리하지 못하는 경우가 있어
+// 배경/테두리 색을 JS에서 직접 계산한 rgb(a) 값으로 만들어 인라인 스타일로 적용한다.
+function hexToRgb(hex){
+  hex = hex.replace('#','').trim();
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const num = parseInt(hex,16);
+  return {r:(num>>16)&255, g:(num>>8)&255, b:num&255};
+}
+function mixWithBase(hex, pct, baseHex){
+  const a = hexToRgb(hex);
+  const b = hexToRgb(baseHex);
+  const t = pct/100;
+  const r = Math.round(a.r*t + b.r*(1-t));
+  const g = Math.round(a.g*t + b.g*(1-t));
+  const bl = Math.round(a.b*t + b.b*(1-t));
+  return `rgb(${r}, ${g}, ${bl})`;
+}
+function accentAlpha(hex, pct){
+  const a = hexToRgb(hex);
+  return `rgba(${a.r}, ${a.g}, ${a.b}, ${(pct/100).toFixed(3)})`;
+}
+function rgbToRgba(rgbStr, alpha){
+  const m = rgbStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if(!m) return rgbStr;
+  return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${alpha.toFixed(3)})`;
+}
+function tintStyle(accent, bgPct, borderPct, opacityPct){
+  const op = (opacityPct===undefined || opacityPct===null) ? 1 : opacityPct/100;
+  const bg = mixWithBase(accent, bgPct, PAPER_HEX);
+  const bgRgba = rgbToRgba(bg, op);
+  const border = accentAlpha(accent, borderPct*op);
+  return `background:${bgRgba};border:1px solid ${border};`;
+}
+const BG_SWATCHES = ['#AEC3E0','#E9C6B8','#BFDCC4','#DEC9EA','#EFD69C','#D3CFC5'];
+
+function flowerSVG(color){
+  return `<svg viewBox="0 0 40 40" fill="none">
+    <g stroke="${color}" stroke-width="1.2">
+      <ellipse cx="20" cy="12" rx="5.2" ry="8" fill="${color}" fill-opacity="0.22"/>
+      <ellipse cx="20" cy="12" rx="5.2" ry="8" transform="rotate(72 20 20)" fill="${color}" fill-opacity="0.22"/>
+      <ellipse cx="20" cy="12" rx="5.2" ry="8" transform="rotate(144 20 20)" fill="${color}" fill-opacity="0.22"/>
+      <ellipse cx="20" cy="12" rx="5.2" ry="8" transform="rotate(216 20 20)" fill="${color}" fill-opacity="0.22"/>
+      <ellipse cx="20" cy="12" rx="5.2" ry="8" transform="rotate(288 20 20)" fill="${color}" fill-opacity="0.22"/>
+    </g>
+    <circle cx="20" cy="20" r="3" fill="${color}"/>
+    <path d="M20 30 C20 30 20 37 20 38" stroke="${color}" stroke-width="1.2"/>
+  </svg>`;
+}
+function gemSVG(color){
+  return `<svg viewBox="0 0 40 40" fill="none">
+    <path d="M20 3 L31 13 L26 36 L14 36 L9 13 Z" fill="${color}" fill-opacity="0.28" stroke="${color}" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M9 13 L31 13 M14 36 L20 13 L26 36 M20 3 L14 13 M20 3 L26 13" stroke="${color}" stroke-width="0.9" stroke-opacity="0.85"/>
+  </svg>`;
+}
+function sprigSVG(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 21 C12 21 12 10 12 4 M12 4 C9 4 7 6 7 9 M12 8 C15 8 17 6 17 3 M12 13 C9 13 7 15 7 18"/></svg>`;
+}
+
+function uid(){ return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function newMember(){
+  return { id:uid(), name:'', month:9, day:15 };
+}
+function newCard(){
+  const c = {
+    id:uid(),
+    mode:'single',          // 'single' | 'group'
+    layout:'default',       // 'default' | 'photo' | 'full' | 'center'
+    showTag:true,
+    accent: ACCENT_SWATCHES[state.cards.length % ACCENT_SWATCHES.length] || ACCENT_SWATCHES[0],
+    bg: BG_SWATCHES[state.cards.length % BG_SWATCHES.length] || BG_SWATCHES[0],
+    photo:null,
+    photoOriginal:null,
+    desc:'',
+    freeOpacity:{},         // 전체 사진 레이아웃 상자별 배경 투명도(0~100)
+    members:[ newMember() ]
+  };
+  return c;
+}
+
+function getFreeOpacity(card, key){
+  if(!card.freeOpacity) card.freeOpacity = {};
+  if(card.freeOpacity[key]===undefined) card.freeOpacity[key] = 95;
+  return card.freeOpacity[key];
+}
+function setFreeOpacity(card, key, val){
+  if(!card.freeOpacity) card.freeOpacity = {};
+  card.freeOpacity[key] = val;
+}
+
+// 현재 레이아웃/모드 조합에 맞는 "상자 배경 투명도" 슬라이더 목록
+function getOpacityFields(card){
+  if(card.layout==='full'){
+    return card.mode==='single'
+      ? [
+          {label:'이름+소개 상자', key:'name'},
+          {label:'생일+탄생석+탄생화 상자', key:'info'}
+        ]
+      : [
+          {label:'그룹 설명 상자', key:'desc'},
+          {label:'구성원 상자', key:'members'}
+        ];
+  }
+  if(card.layout==='center'){
+    return card.mode==='single'
+      ? [
+          {label:'이름·생일 상자', key:'quadTop'},
+          {label:'탄생화·탄생석 상자', key:'quadBottom'}
+        ]
+      : [
+          {label:'그룹 설명 상자', key:'centerDesc'},
+          {label:'구성원 상자', key:'centerMembers'}
+        ];
+  }
+  // 기본 / 사진 강조 레이아웃
+  return card.mode==='single'
+    ? [{label:'탄생화·탄생석 상자', key:'panels'}]
+    : [{label:'구성원 상자', key:'memberBlocks'}];
+}
+function opacityFieldHTML(label, card, key){
+  const v = getFreeOpacity(card, key);
+  return `
+    <div class="field">
+      <span class="field-label">${label}</span>
+      <div class="opacity-row">
+        <input type="range" class="opacity-range-input" data-opacity-key="${key}" min="0" max="100" value="${v}">
+        <span class="opacity-value" data-opacity-value-for="${key}">${v}%</span>
+      </div>
+    </div>
+  `;
+}
+
+// ============ 전역 상태 ============
+const state = {
+  orientation:'portrait',
+  font:'pretendard',
+  cards: [],
+  selectedId: null
+};
+state.cards.push(newCard());
+state.selectedId = state.cards[0].id;
+
+// ============ 이미지 크롭 모달 ============
+function getDefaultCropRatio(card){
+  return card.layout==='photo' ? 'free' : '1';
+}
+
+let cropperInstance = null;
+let cropTargetCard = null;
+
+function openCropModal(card, srcDataUrl, defaultRatio){
+  cropTargetCard = card;
+  const overlay = document.getElementById('cropModalOverlay');
+  const imgEl = document.getElementById('cropImageEl');
+
+  document.querySelectorAll('.crop-aspect-btn').forEach(b=>b.classList.remove('active'));
+  const defBtn = document.querySelector(`.crop-aspect-btn[data-ratio="${defaultRatio}"]`) || document.querySelector('.crop-aspect-btn[data-ratio="free"]');
+  if(defBtn) defBtn.classList.add('active');
+
+  if(cropperInstance){ cropperInstance.destroy(); cropperInstance = null; }
+
+  overlay.classList.add('show');
+  imgEl.onload = ()=>{
+    cropperInstance = new Cropper(imgEl, {
+      viewMode:1,
+      aspectRatio: defaultRatio==='free' ? NaN : parseFloat(defaultRatio),
+      background:false,
+      autoCropArea:0.95,
+      zoomable:true,
+      movable:true,
+      responsive:true
+    });
+  };
+  imgEl.src = srcDataUrl;
+}
+
+function closeCropModal(){
+  document.getElementById('cropModalOverlay').classList.remove('show');
+  if(cropperInstance){ cropperInstance.destroy(); cropperInstance = null; }
+  cropTargetCard = null;
+}
+
+document.getElementById('cropCloseBtn').addEventListener('click', closeCropModal);
+document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+
+document.querySelectorAll('.crop-aspect-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.crop-aspect-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(!cropperInstance) return;
+    const r = btn.dataset.ratio;
+    cropperInstance.setAspectRatio(r==='free' ? NaN : parseFloat(r));
+  });
+});
+
+document.getElementById('cropZoomInBtn').addEventListener('click', ()=>{ if(cropperInstance) cropperInstance.zoom(0.1); });
+document.getElementById('cropZoomOutBtn').addEventListener('click', ()=>{ if(cropperInstance) cropperInstance.zoom(-0.1); });
+document.getElementById('cropRotateLeftBtn').addEventListener('click', ()=>{ if(cropperInstance) cropperInstance.rotate(-90); });
+document.getElementById('cropRotateRightBtn').addEventListener('click', ()=>{ if(cropperInstance) cropperInstance.rotate(90); });
+document.getElementById('cropResetBtn').addEventListener('click', ()=>{ if(cropperInstance) cropperInstance.reset(); });
+
+document.getElementById('cropApplyBtn').addEventListener('click', ()=>{
+  if(!cropperInstance || !cropTargetCard) return;
+  const canvas = cropperInstance.getCroppedCanvas({maxWidth:1600, maxHeight:1600, imageSmoothingQuality:'high'});
+  if(!canvas){ closeCropModal(); return; }
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  cropTargetCard.photo = dataUrl;
+  closeCropModal();
+  renderCardEditor(); renderCardList(); renderPreview();
+});
+
+// ============ 자유 배치(전체 사진 레이아웃) 드래그 ============
+function wireFreeDrag(){
+  document.querySelectorAll('.card.full-photo-layout').forEach(cardEl=>{
+    const cardId = cardEl.id.replace('cardEl-','');
+    const card = state.cards.find(c=>c.id===cardId);
+    if(!card) return;
+    cardEl.querySelectorAll('.free-item').forEach(item=>{
+      const key = item.dataset.freeKey;
+      let dragging = false;
+
+      const onMove = (e)=>{
+        if(!dragging) return;
+        const rect = cardEl.getBoundingClientRect();
+        let xPct = ((e.clientX - rect.left) / rect.width) * 100;
+        let yPct = ((e.clientY - rect.top) / rect.height) * 100;
+        xPct = Math.min(92, Math.max(8, xPct));
+        yPct = Math.min(94, Math.max(6, yPct));
+        item.style.left = xPct + '%';
+        item.style.top = yPct + '%';
+        getFreePos(card)[key] = {x:xPct, y:yPct};
+      };
+      const onUp = (e)=>{
+        if(!dragging) return;
+        dragging = false;
+        try{ item.releasePointerCapture(e.pointerId); }catch(err){}
+      };
+      item.addEventListener('pointerdown', (e)=>{
+        dragging = true;
+        try{ item.setPointerCapture(e.pointerId); }catch(err){}
+      });
+      item.addEventListener('pointermove', onMove);
+      item.addEventListener('pointerup', onUp);
+      item.addEventListener('pointercancel', onUp);
+    });
+  });
+}
+
+function getSelectedCard(){
+  return state.cards.find(c=>c.id===state.selectedId) || state.cards[0];
+}
+function fillDayOptions(selectEl, month, curDay){
+  const max = MONTH_DAYS[month-1];
+  selectEl.innerHTML='';
+  for(let d=1; d<=max; d++){
+    const opt=document.createElement('option');
+    opt.value=d; opt.textContent=d+'일';
+    selectEl.appendChild(opt);
+  }
+  selectEl.value = Math.min(curDay, max);
+  return Math.min(curDay, max);
+}
+
+// ============ 사이드바: 카드(인원) 목록 ============
+function renderCardList(){
+  const wrap = document.getElementById('cardListEl');
+  wrap.innerHTML = '';
+  state.cards.forEach((card, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'card-row' + (card.id===state.selectedId ? ' active' : '');
+    row.style.setProperty('--row-accent', card.bg);
+    const mainName = card.members[0] && card.members[0].name ? card.members[0].name : ('인원 '+(idx+1));
+    const metaText = card.mode==='group' ? `그룹 · ${card.members.length}명` : '개인 카드';
+    row.innerHTML = `
+      <div class="thumb">${card.photo ? `<img src="${card.photo}">` : ''}</div>
+      <div class="info">
+        <div class="nm">${escapeHtml(mainName)}</div>
+        <div class="meta">${metaText}</div>
+      </div>
+      <button class="del" title="삭제" ${state.cards.length<=1?'disabled':''}>✕</button>
+    `;
+    row.addEventListener('click', (e)=>{
+      if(e.target.closest('.del')) return;
+      state.selectedId = card.id;
+      renderAll();
+    });
+    row.querySelector('.del').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(state.cards.length<=1) return;
+      const i = state.cards.findIndex(c=>c.id===card.id);
+      state.cards.splice(i,1);
+      if(state.selectedId===card.id){
+        state.selectedId = state.cards[Math.max(0,i-1)].id;
+      }
+      renderAll();
+    });
+    wrap.appendChild(row);
+  });
+  document.getElementById('cardCountLabel').textContent = state.cards.length+'명';
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ============ 사이드바: 선택된 카드 편집 ============
+function renderCardEditor(){
+  const mount = document.getElementById('cardEditorMount');
+  const card = getSelectedCard();
+
+  mount.innerHTML = `
+    <div class="section">
+      <div class="section-title">카드 유형</div>
+      <div class="toggle-row">
+        <div class="toggle-btn ${card.mode==='single'?'active':''}" data-mode="single">개인 카드</div>
+        <div class="toggle-btn ${card.mode==='group'?'active':''}" data-mode="group">그룹 카드</div>
+      </div>
+      <div class="hint-text">그룹 카드는 사진 한 장에 여러 명의 이름·탄생화·탄생석을 함께 정리해요.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">레이아웃</div>
+      <div class="toggle-row layout-grid">
+        <div class="toggle-btn ${(!card.layout || card.layout==='default')?'active':''}" data-layout="default">기본</div>
+        <div class="toggle-btn ${card.layout==='photo'?'active':''}" data-layout="photo">사진 강조</div>
+        <div class="toggle-btn ${card.layout==='full'?'active':''}" data-layout="full">전체 사진</div>
+        <div class="toggle-btn ${card.layout==='center'?'active':''}" data-layout="center">중앙 사진 (가로 전용)</div>
+      </div>
+      ${card.layout==='full' ? `<div class="hint-text">미리보기에서 상자를 드래그하면 위치를 옮길 수 있어요.</div>` : ''}
+      ${card.layout==='center' ? `<div class="hint-text">이 레이아웃은 항상 가로형으로 표시돼요.</div>` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">상자 배경 투명도</div>
+      ${getOpacityFields(card).map(f => opacityFieldHTML(f.label, card, f.key)).join('')}
+    </div>
+
+    <div class="section">
+      <div class="section-title">상단 문구</div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="showTagCheckbox" ${card.showTag!==false ? 'checked' : ''}>
+        <span>"Birth Flower &amp; Stone" 문구 표시</span>
+      </label>
+    </div>
+
+    <div class="section">
+      <div class="section-title">포인트 컬러</div>
+      <div class="swatch-row" id="accentSwatchRow"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">카드 배경색 (테두리)</div>
+      <div class="swatch-row" id="bgSwatchRow"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${card.mode==='group' ? '대표 사진 (공유)' : '프로필 사진'}</div>
+      <div class="field">
+        <div class="photo-upload-row">
+          <label class="photo-thumb" for="photoInput">
+            ${card.photo ? `<img src="${card.photo}">` : `<span>사진</span>`}
+          </label>
+          <label class="upload-btn" for="photoInput">이미지 선택</label>
+          ${card.photo ? `<button type="button" class="edit-photo-btn" id="editPhotoBtn">편집</button>` : ''}
+          <input type="file" id="photoInput" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="singleFieldsSection" style="${card.mode==='single'?'':'display:none;'}">
+      <div class="section-title">기본 정보</div>
+      <div class="field">
+        <span class="field-label">이름</span>
+        <input type="text" id="nameInput" placeholder="캐릭터 이름을 입력하세요" maxlength="30" value="${escapeHtml(card.members[0].name)}">
+      </div>
+      <div class="field">
+        <span class="field-label">한 줄 소개</span>
+        <textarea id="descInput" rows="2" placeholder="간단한 소개를 적어주세요" maxlength="80">${escapeHtml(card.desc)}</textarea>
+      </div>
+      <div class="field">
+        <span class="field-label">생일 (월 / 일)</span>
+        <div class="date-row">
+          <select id="monthSelect"></select>
+          <select id="daySelect"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="groupFieldsSection" style="${card.mode==='group'?'':'display:none;'}">
+      <div class="field">
+        <span class="field-label">그룹 설명 (선택)</span>
+        <textarea id="groupDescInput" rows="2" placeholder="예: 다 같이 모인 날" maxlength="80">${escapeHtml(card.desc)}</textarea>
+      </div>
+      <div class="section-title" style="margin-top:14px;">구성원 <span class="count">${card.members.length}명</span></div>
+      <div id="memberListEl"></div>
+      <button class="add-member-btn" id="addMemberBtn">+ 구성원 추가</button>
+    </div>
+  `;
+
+  // 모드 토글
+  mount.querySelectorAll('[data-mode]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      card.mode = btn.dataset.mode;
+      renderAll();
+    });
+  });
+
+  // 레이아웃 토글
+  mount.querySelectorAll('[data-layout]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      card.layout = btn.dataset.layout;
+      renderCardEditor(); renderPreview();
+    });
+  });
+
+  // 상단 문구 표시 여부
+  document.getElementById('showTagCheckbox').addEventListener('change', (e)=>{
+    card.showTag = e.target.checked;
+    renderPreview();
+  });
+
+  // 상자 배경 투명도 (모든 레이아웃 공통)
+  mount.querySelectorAll('.opacity-range-input').forEach(input=>{
+    input.addEventListener('input', (e)=>{
+      const key = input.dataset.opacityKey;
+      const val = parseInt(e.target.value, 10);
+      setFreeOpacity(card, key, val);
+      const valueEl = mount.querySelector(`.opacity-value[data-opacity-value-for="${key}"]`);
+      if(valueEl) valueEl.textContent = val + '%';
+      renderPreview();
+    });
+  });
+
+  // 포인트 컬러 스와치
+  const accentRow = document.getElementById('accentSwatchRow');
+  ACCENT_SWATCHES.forEach(c=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (card.accent.toLowerCase()===c.toLowerCase() ? ' active':'');
+    sw.style.background = c;
+    sw.addEventListener('click', ()=>{ card.accent = c; renderCardEditor(); renderCardList(); renderPreview(); });
+    accentRow.appendChild(sw);
+  });
+  const accentCustom = document.createElement('div');
+  accentCustom.className = 'swatch custom';
+  accentCustom.innerHTML = `<input type="color" value="${card.accent}">+`;
+  accentCustom.querySelector('input').addEventListener('input', (e)=>{
+    card.accent = e.target.value;
+    renderCardList(); renderPreview();
+  });
+  accentRow.appendChild(accentCustom);
+
+  // 카드 배경색 스와치
+  const bgRow = document.getElementById('bgSwatchRow');
+  BG_SWATCHES.forEach(c=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (card.bg.toLowerCase()===c.toLowerCase() ? ' active':'');
+    sw.style.background = c;
+    sw.addEventListener('click', ()=>{ card.bg = c; renderCardEditor(); renderCardList(); renderPreview(); });
+    bgRow.appendChild(sw);
+  });
+  const bgCustom = document.createElement('div');
+  bgCustom.className = 'swatch custom';
+  bgCustom.innerHTML = `<input type="color" value="${card.bg}">+`;
+  bgCustom.querySelector('input').addEventListener('input', (e)=>{
+    card.bg = e.target.value;
+    renderCardList(); renderPreview();
+  });
+  bgRow.appendChild(bgCustom);
+
+  // 사진 업로드 (base64로 변환 → 저장 오류 방지 + 크롭 모달 오픈)
+  document.getElementById('photoInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      card.photoOriginal = ev.target.result;
+      openCropModal(card, ev.target.result, getDefaultCropRatio(card));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+
+  // 사진 편집(재크롭)
+  const editPhotoBtn = document.getElementById('editPhotoBtn');
+  if(editPhotoBtn){
+    editPhotoBtn.addEventListener('click', ()=>{
+      const src = card.photoOriginal || card.photo;
+      openCropModal(card, src, getDefaultCropRatio(card));
+    });
+  }
+
+  if(card.mode==='single'){
+    const m = card.members[0];
+    document.getElementById('nameInput').addEventListener('input', (e)=>{
+      m.name = e.target.value; renderCardList(); renderPreview();
+    });
+    document.getElementById('descInput').addEventListener('input', (e)=>{
+      card.desc = e.target.value; renderPreview();
+    });
+    const monthSelect = document.getElementById('monthSelect');
+    const daySelect = document.getElementById('daySelect');
+    for(let mo=1; mo<=12; mo++){
+      const opt=document.createElement('option');
+      opt.value=mo; opt.textContent=mo+'월';
+      if(mo===m.month) opt.selected=true;
+      monthSelect.appendChild(opt);
+    }
+    m.day = fillDayOptions(daySelect, m.month, m.day);
+    monthSelect.addEventListener('change', ()=>{
+      m.month = parseInt(monthSelect.value,10);
+      m.day = fillDayOptions(daySelect, m.month, m.day);
+      renderPreview();
+    });
+    daySelect.addEventListener('change', ()=>{
+      m.day = parseInt(daySelect.value,10);
+      renderPreview();
+    });
+  } else {
+    document.getElementById('groupDescInput').addEventListener('input', (e)=>{
+      card.desc = e.target.value; renderPreview();
+    });
+    renderMemberList();
+    document.getElementById('addMemberBtn').addEventListener('click', ()=>{
+      card.members.push(newMember());
+      renderCardEditor(); renderCardList(); renderPreview();
+    });
+  }
+}
+
+function renderMemberList(){
+  const card = getSelectedCard();
+  const wrap = document.getElementById('memberListEl');
+  wrap.innerHTML = '';
+  card.members.forEach((m, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.innerHTML = `
+      <div class="member-top">
+        <input type="text" placeholder="이름 ${idx+1}" maxlength="20" value="${escapeHtml(m.name)}">
+        <button class="rm-member" ${card.members.length<=1?'disabled':''} title="삭제">✕</button>
+      </div>
+      <div class="member-date-row">
+        <select class="m-month"></select>
+        <select class="m-day"></select>
+      </div>
+    `;
+    const nameInput = row.querySelector('input[type=text]');
+    nameInput.addEventListener('input', ()=>{
+      m.name = nameInput.value; renderCardList(); renderPreview();
+    });
+    row.querySelector('.rm-member').addEventListener('click', ()=>{
+      if(card.members.length<=1) return;
+      const i = card.members.findIndex(mm=>mm.id===m.id);
+      card.members.splice(i,1);
+      renderCardEditor(); renderCardList(); renderPreview();
+    });
+    const monthSel = row.querySelector('.m-month');
+    const daySel = row.querySelector('.m-day');
+    for(let mo=1; mo<=12; mo++){
+      const opt=document.createElement('option');
+      opt.value=mo; opt.textContent=mo+'월';
+      if(mo===m.month) opt.selected=true;
+      monthSel.appendChild(opt);
+    }
+    m.day = fillDayOptions(daySel, m.month, m.day);
+    monthSel.addEventListener('change', ()=>{
+      m.month = parseInt(monthSel.value,10);
+      m.day = fillDayOptions(daySel, m.month, m.day);
+      renderPreview();
+    });
+    daySel.addEventListener('change', ()=>{
+      m.day = parseInt(daySel.value,10);
+      renderPreview();
+    });
+    wrap.appendChild(row);
+  });
+}
+
+// ============ 카드 렌더 (마크업 생성) ============
+function buildPanelHTML(kind, iconSVGFn, name, meaning, accent, opacityPct){
+  return `
+    <div class="panel" style="${tintStyle(accent,7,18,opacityPct)}">
+      <div class="panel-head">
+        <div class="panel-icon">${iconSVGFn(accent)}</div>
+        <div>
+          <div class="panel-kind">${kind}</div>
+          <div class="panel-name">${escapeHtml(name)}</div>
+        </div>
+      </div>
+      <div class="meaning-label">${kind==='탄생화' ? '꽃말' : '의미'}</div>
+      <div class="meaning-value">${escapeHtml(meaning)}</div>
+    </div>
+  `;
+}
+
+function buildMemberBlocksHTML(card, opacityPct){
+  return card.members.map(m=>{
+    const info = getBirthInfo(m.month, m.day);
+    return `
+      <div class="member-block" style="${tintStyle(card.accent,6,15,opacityPct)}">
+        <div class="member-head">
+          <div class="mname">${escapeHtml(m.name) || '이름 미입력'}</div>
+          <div class="mdate">${m.month}월 ${m.day}일</div>
+        </div>
+        <div class="member-mini">
+          <div class="mini-item">
+            <div class="mi-icon">${flowerSVG(card.accent)}</div>
+            <div class="mi-text">
+              <div class="mi-kind">탄생화</div>
+              <div class="mi-name">${escapeHtml(info.flower)}</div>
+              <div class="mi-mean">${escapeHtml(info.fmean)}</div>
+            </div>
+          </div>
+          <div class="mini-item">
+            <div class="mi-icon">${gemSVG(card.accent)}</div>
+            <div class="mi-text">
+              <div class="mi-kind">탄생석</div>
+              <div class="mi-name">${escapeHtml(info.gem)}</div>
+              <div class="mi-mean">${escapeHtml(info.gmean)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getFreePos(card){
+  if(!card.freePos) card.freePos = {};
+  return card.freePos;
+}
+function ensurePos(card, key, x, y){
+  const fp = getFreePos(card);
+  if(!fp[key]) fp[key] = {x, y};
+  return fp[key];
+}
+function getFreeSize(card, key, defaultW, defaultH){
+  if(!card.freeSize) card.freeSize = {};
+  if(!card.freeSize[key]) card.freeSize[key] = {w:defaultW, h:defaultH};
+  return card.freeSize[key];
+}
+function freeItemStyleAttr(size){
+  let s = `width:${size.w}px;`;
+  if(size.h) s += `height:${size.h}px;`;
+  return s;
+}
+function buildCardHTML(card, landscape){
+  const cls = 'card' + (landscape ? ' landscape' : '');
+  const styleVars = `--accent:${card.accent};--cardbg:${card.bg};`;
+
+  const tagHTML = card.showTag!==false ? `<span class="top-tag">Birth Flower &amp; Stone</span>` : '';
+
+  if(card.layout==='full'){
+    if(card.mode==='single'){
+      const m = card.members[0];
+      const info = getBirthInfo(m.month, m.day);
+      const posName = ensurePos(card,'name',26,83);
+      const posInfo = ensurePos(card,'info',74,83);
+      const sizeName = getFreeSize(card,'name',190,null);
+      const sizeInfo = getFreeSize(card,'info',180,null);
+      const opName = getFreeOpacity(card,'name');
+      const opInfo = getFreeOpacity(card,'info');
+      return `
+        <div class="${cls} full-photo-layout" style="${styleVars}" id="cardEl-${card.id}">
+          ${tagHTML}
+          ${card.photo ? `<img class="full-photo-bg" src="${card.photo}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
+          <div class="free-item${sizeName.h?' has-size':''}" data-free-key="name" style="left:${posName.x}%;top:${posName.y}%;${freeItemStyleAttr(sizeName)}background:rgba(251,246,236,${opName/100});">
+            <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
+            <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          </div>
+          <div class="free-item${sizeInfo.h?' has-size':''}" data-free-key="info" style="left:${posInfo.x}%;top:${posInfo.y}%;${freeItemStyleAttr(sizeInfo)}background:rgba(251,246,236,${opInfo/100});">
+            <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
+            <div class="mini-item" style="margin-top:8px;">
+              <div class="mi-icon">${flowerSVG(card.accent)}</div>
+              <div class="mi-text">
+                <div class="mi-kind">탄생화</div>
+                <div class="mi-name">${escapeHtml(info.flower)}</div>
+              </div>
+            </div>
+            <div class="mini-item">
+              <div class="mi-icon">${gemSVG(card.accent)}</div>
+              <div class="mi-text">
+                <div class="mi-kind">탄생석</div>
+                <div class="mi-name">${escapeHtml(info.gem)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      const opDesc = getFreeOpacity(card,'desc');
+      const opMembers = getFreeOpacity(card,'members');
+      const memberBlocks = buildMemberBlocksHTML(card, opMembers);
+      const posDesc = ensurePos(card,'desc',26,20);
+      const posMembers = ensurePos(card,'members',72,55);
+      const sizeDesc = getFreeSize(card,'desc',190,null);
+      const sizeMembers = getFreeSize(card,'members',230,220);
+      return `
+        <div class="${cls} full-photo-layout" style="${styleVars}" id="cardEl-${card.id}">
+          ${tagHTML}
+          ${card.photo ? `<img class="full-photo-bg" src="${card.photo}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
+          <div class="free-item${sizeDesc.h?' has-size':''}" data-free-key="desc" style="left:${posDesc.x}%;top:${posDesc.y}%;${freeItemStyleAttr(sizeDesc)}background:rgba(251,246,236,${opDesc/100});">
+            <div class="card-desc">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
+          </div>
+          <div class="free-item has-size" data-free-key="members" style="left:${posMembers.x}%;top:${posMembers.y}%;${freeItemStyleAttr(sizeMembers)}background:rgba(251,246,236,${opMembers/100});">
+            <div class="member-list">${memberBlocks}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if(card.layout==='center'){
+    if(card.mode==='single'){
+      const m = card.members[0];
+      const info = getBirthInfo(m.month, m.day);
+      const opQuadTop = getFreeOpacity(card,'quadTop');
+      const opQuadBottom = getFreeOpacity(card,'quadBottom');
+      return `
+        <div class="card landscape center-photo-layout" style="${styleVars}" id="cardEl-${card.id}">
+          ${tagHTML}
+          <div class="center-quad tl" style="${tintStyle(card.accent,8,16,opQuadTop)}">
+            <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
+            <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          </div>
+          <div class="center-photo-hero">
+            ${card.photo ? `<img src="${card.photo}">` : `<span>사진<br>없음</span>`}
+          </div>
+          <div class="center-quad tr" style="${tintStyle(card.accent,8,16,opQuadTop)}">
+            <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
+          </div>
+          <div class="center-quad bl" style="${tintStyle(card.accent,7,18,opQuadBottom)}">
+            <div class="panel-head">
+              <div class="panel-icon">${flowerSVG(card.accent)}</div>
+              <div>
+                <div class="panel-kind">탄생화</div>
+                <div class="panel-name">${escapeHtml(info.flower)}</div>
+              </div>
+            </div>
+            <div class="meaning-label">꽃말</div>
+            <div class="meaning-value">${escapeHtml(info.fmean)}</div>
+          </div>
+          <div class="center-quad br" style="${tintStyle(card.accent,7,18,opQuadBottom)}">
+            <div class="panel-head">
+              <div class="panel-icon">${gemSVG(card.accent)}</div>
+              <div>
+                <div class="panel-kind">탄생석</div>
+                <div class="panel-name">${escapeHtml(info.gem)}</div>
+              </div>
+            </div>
+            <div class="meaning-label">의미</div>
+            <div class="meaning-value">${escapeHtml(info.gmean)}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      const opCenterDesc = getFreeOpacity(card,'centerDesc');
+      const opCenterMembers = getFreeOpacity(card,'centerMembers');
+      const memberBlocks = buildMemberBlocksHTML(card, opCenterMembers);
+      return `
+        <div class="card landscape center-photo-layout group-center" style="${styleVars}" id="cardEl-${card.id}">
+          ${tagHTML}
+          <div class="center-quad left-full" style="${tintStyle(card.accent,8,16,opCenterDesc)}">
+            <div class="card-desc">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
+          </div>
+          <div class="center-photo-hero">
+            ${card.photo ? `<img src="${card.photo}">` : `<span>사진<br>없음</span>`}
+          </div>
+          <div class="center-quad right-full member-quad">
+            <div class="member-list">${memberBlocks}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if(card.mode==='single'){
+    const m = card.members[0];
+    const info = getBirthInfo(m.month, m.day);
+    const isPhoto = card.layout==='photo';
+    const profileInner = isPhoto ? `
+          <div class="photo-hero${card.photo?'':' empty'}">
+            ${card.photo ? `<img src="${card.photo}">` : `<span>사진<br>없음</span>`}
+          </div>
+          <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
+          <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
+          <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
+        ` : `
+          <div class="photo-wrap">
+            ${card.photo ? `<img class="photo-circle-img" src="${card.photo}">` : `<div class="photo-circle-empty">사진<br>없음</div>`}
+            <div class="photo-ring"></div>
+          </div>
+          <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
+          <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
+          <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
+        `;
+    return `
+      <div class="${cls}${isPhoto?' layout-photo':''}" style="${styleVars}" id="cardEl-${card.id}">
+        ${tagHTML}
+        <div class="profile-block${isPhoto?' photo-emphasis':''}">
+          ${profileInner}
+        </div>
+        <div class="panels">
+          ${buildPanelHTML('탄생화', flowerSVG, info.flower, info.fmean, card.accent, getFreeOpacity(card,'panels'))}
+          ${buildPanelHTML('탄생석', gemSVG, info.gem, info.gmean, card.accent, getFreeOpacity(card,'panels'))}
+        </div>
+      </div>
+    `;
+  } else {
+    const memberBlocks = buildMemberBlocksHTML(card, getFreeOpacity(card,'memberBlocks'));
+
+    const isPhoto = card.layout==='photo';
+    const groupProfileInner = isPhoto ? `
+          <div class="photo-hero group-hero${card.photo?'':' empty'}">
+            ${card.photo ? `<img src="${card.photo}">` : `<span>사진<br>없음</span>`}
+          </div>
+          <div class="card-desc">${escapeHtml(card.desc) || ''}</div>
+          <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
+        ` : `
+          <div class="group-photo-wrap">
+            ${card.photo ? `<img class="photo-circle-img" src="${card.photo}">` : `<div class="photo-circle-empty">사진<br>없음</div>`}
+            <div class="photo-ring"></div>
+          </div>
+          <div class="card-desc">${escapeHtml(card.desc) || ''}</div>
+          <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
+        `;
+    return `
+      <div class="${cls}${isPhoto?' layout-photo group-photo-layout':''}" style="${styleVars}" id="cardEl-${card.id}">
+        ${tagHTML}
+        <div class="profile-block${isPhoto?' photo-emphasis':''}">
+          ${groupProfileInner}
+        </div>
+        <div class="member-list">
+          ${memberBlocks}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ============ 미리보기 렌더 ============
+function renderPreview(){
+  document.documentElement.style.setProperty('--font-main', FONT_MAP[state.font]);
+
+  const flow = document.getElementById('previewFlow');
+  flow.className = 'preview-flow ' + (state.orientation==='landscape' ? 'dir-landscape' : 'dir-portrait');
+  flow.innerHTML = '';
+
+  state.cards.forEach((card, idx)=>{
+    const slot = document.createElement('div');
+    slot.className = 'page-slot';
+    const badge = document.createElement('div');
+    badge.className = 'page-badge';
+    const label = card.members[0] && card.members[0].name ? card.members[0].name : ('page.'+(idx+1));
+    badge.textContent = `${String(idx+1).padStart(2,'0')} — ${label}`;
+    const frame = document.createElement('div');
+    frame.className = 'card-frame';
+    frame.style.setProperty('--cardbg', card.bg);
+    frame.innerHTML = buildCardHTML(card, state.orientation==='landscape');
+    slot.appendChild(badge);
+    slot.appendChild(frame);
+    flow.appendChild(slot);
+  });
+
+  wireFreeDrag();
+}
+
+// ============ 전체 렌더 ============
+function renderAll(){
+  renderCardList();
+  renderCardEditor();
+  renderPreview();
+}
+
+// ============ 방향 토글 ============
+document.querySelectorAll('.toggle-btn[data-orientation]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.toggle-btn[data-orientation]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.orientation = btn.dataset.orientation;
+    renderPreview();
+  });
+});
+
+// ============ 폰트 ============
+document.getElementById('fontSelect').addEventListener('change', e=>{
+  state.font = e.target.value;
+  renderPreview();
+});
+
+// ============ 인원 추가 ============
+document.getElementById('addCardBtn').addEventListener('click', ()=>{
+  const c = newCard();
+  state.cards.push(c);
+  state.selectedId = c.id;
+  renderAll();
+});
+
+// ============ 다운로드 ============
+function waitForImages(el){
+  const imgs = Array.from(el.querySelectorAll('img'));
+  return Promise.all(imgs.map(img=>{
+    if(img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve=>{
+      img.addEventListener('load', resolve, {once:true});
+      img.addEventListener('error', resolve, {once:true});
+    });
+  }));
+}
+
+async function captureCard(card){
+  const el = document.getElementById('cardEl-'+card.id).closest('.card-frame');
+  document.body.classList.add('is-exporting');
+  try{
+    // 이미지가 완전히 로드된 뒤에 캡처해야 사진이 빠지는 문제가 생기지 않음
+    await waitForImages(el);
+    // 브라우저 렌더링/디코딩이 끝날 시간을 한 프레임 더 확보
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const canvas = await html2canvas(el, {
+      backgroundColor:null,
+      scale:3,
+      useCORS:true,
+      allowTaint:true,
+      imageTimeout:15000
+    });
+    return canvas;
+  } finally {
+    document.body.classList.remove('is-exporting');
+  }
+}
+
+document.getElementById('downloadOneBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('downloadOneBtn');
+  const card = getSelectedCard();
+  btn.disabled = true; btn.textContent = '저장 중...';
+  try{
+    const canvas = await captureCard(card);
+    const link = document.createElement('a');
+    const fname = ((card.members[0] && card.members[0].name) || '캐릭터').replace(/[\\/:*?"<>|]/g,'');
+    link.download = `${fname}_탄생카드.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }catch(err){
+    alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
+  }
+  btn.disabled = false; btn.textContent = '이미지로 저장';
+});
+
+renderAll();
+</script>
+</body>
+</html>
