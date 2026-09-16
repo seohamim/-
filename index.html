@@ -828,6 +828,24 @@
   </div>
 </div>
 
+<!-- ============ 이미지 저장 안내 모달 (모바일) ============ -->
+<div class="preview-modal-overlay" id="saveImageModalOverlay">
+  <div class="preview-modal">
+    <div class="preview-modal-head">
+      <span>이미지 저장</span>
+      <button class="crop-close" id="saveImageCloseBtn">✕</button>
+    </div>
+    <div class="preview-modal-body">
+      <div class="hint-text" style="text-align:center;">
+        아래 이미지를 <b>길게 눌러</b> "이미지 저장" 또는 "사진에 저장"을 선택해주세요.
+      </div>
+      <img id="saveImagePreviewImg" src="" alt="" style="max-width:100%;border-radius:16px;box-shadow:0 12px 30px rgba(20,24,40,0.18);">
+      <div class="hint-text" id="saveImageFilename" style="text-align:center;"></div>
+      <button type="button" class="btn" id="saveImageShareBtn" style="align-self:center;">다른 방법으로 공유하기</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 이미지 크롭 모달 ============ -->
 <div class="crop-modal-overlay" id="cropModalOverlay">
   <div class="crop-modal">
@@ -2046,6 +2064,39 @@ function canvasToBlob(canvas){
   return new Promise(resolve=> canvas.toBlob(resolve, 'image/png'));
 }
 
+// 모바일 앱 내장 브라우저(카카오톡, 깃허브 앱 등)에서는 Web Share가 "공유" 시트로만
+// 뜨고 "이미지 저장"이 되지 않는 경우가 많아서, 터치 기기에서는 화면에 이미지를 직접
+// 띄워 길게 눌러 저장하는 방식을 기본으로 사용한다. 공유 자체가 필요한 사람을 위해
+// "다른 방법으로 공유" 버튼은 별도로 남겨둔다.
+let saveImageBlob = null;
+let saveImageFile = null;
+
+function openSaveImageOverlay(canvas, fname){
+  const overlay = document.getElementById('saveImageModalOverlay');
+  const img = document.getElementById('saveImagePreviewImg');
+  img.src = canvas.toDataURL('image/png');
+  document.getElementById('saveImageFilename').textContent = `${fname}_탄생카드.png`;
+  overlay.classList.add('show');
+}
+function closeSaveImageOverlay(){
+  document.getElementById('saveImageModalOverlay').classList.remove('show');
+}
+document.getElementById('saveImageCloseBtn').addEventListener('click', closeSaveImageOverlay);
+document.getElementById('saveImageModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'saveImageModalOverlay') closeSaveImageOverlay();
+});
+document.getElementById('saveImageShareBtn').addEventListener('click', async ()=>{
+  try{
+    if(navigator.canShare && saveImageFile && navigator.canShare({files:[saveImageFile]})){
+      await navigator.share({files:[saveImageFile], title:saveImageFile.name});
+    } else {
+      alert('이 브라우저에서는 공유하기를 지원하지 않아요. 이미지를 길게 눌러 저장해주세요.');
+    }
+  }catch(err){
+    // 사용자가 공유를 취소한 경우는 무시
+  }
+});
+
 document.getElementById('downloadOneBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('downloadOneBtn');
   const card = getSelectedCard();
@@ -2054,37 +2105,22 @@ document.getElementById('downloadOneBtn').addEventListener('click', async ()=>{
   try{
     const canvas = await captureCard(card);
     const fname = ((card.members[0] && card.members[0].name) || '캐릭터').replace(/[\\/:*?"<>|]/g,'');
-    const blob = await canvasToBlob(canvas);
-    const file = new File([blob], `${fname}_탄생카드.png`, {type:'image/png'});
 
-    // 모바일: 공유 시트를 지원하면 "사진에 저장"으로 바로 연결됨 (가장 안정적)
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:`${fname}_탄생카드`});
-    }
-    // 공유 시트를 지원하지 않는 모바일 브라우저(구형 iOS 사파리 등): 새 탭에 이미지를 열어
-    // 길게 눌러 저장할 수 있게 안내
-    else if(isTouchDevice){
-      const dataUrl = canvas.toDataURL('image/png');
-      const win = window.open();
-      if(win){
-        win.document.write(`<title>${fname}_탄생카드</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${dataUrl}" style="max-width:100%;height:auto;"></body>`);
-      } else {
-        alert('팝업이 차단되었어요. 팝업 허용 후 다시 시도해주세요.');
-      }
-      alert('이미지를 길게 눌러 "사진에 저장"을 선택해주세요.');
-    }
-    // 데스크톱: 기존 방식대로 바로 다운로드
-    else {
+    if(isTouchDevice){
+      // 모바일/앱 내장 브라우저: 화면에 이미지를 띄워 길게 눌러 저장하도록 안내
+      const blob = await canvasToBlob(canvas);
+      saveImageBlob = blob;
+      saveImageFile = new File([blob], `${fname}_탄생카드.png`, {type:'image/png'});
+      openSaveImageOverlay(canvas, fname);
+    } else {
+      // 데스크톱: 기존 방식대로 바로 다운로드
       const link = document.createElement('a');
       link.download = `${fname}_탄생카드.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
   }catch(err){
-    // 사용자가 공유 시트를 취소한 경우(AbortError)는 에러 알림을 띄우지 않음
-    if(err && err.name !== 'AbortError'){
-      alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
-    }
+    alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
   }
   btn.disabled = false; btn.textContent = '이미지로 저장';
 });
