@@ -409,11 +409,11 @@
 
   .card-name{
     font-size:21px;font-weight:700;color:var(--ink);
-    margin-bottom:5px;word-break:keep-all;
+    margin-bottom:5px;word-break:keep-all;overflow-wrap:break-word;
   }
   .card-desc{
     font-size:12.5px;color:var(--ink-soft);line-height:1.6;
-    word-break:keep-all;
+    word-break:keep-all;overflow-wrap:break-word;
   }
 
   .sprig-divider{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0;}
@@ -437,10 +437,10 @@
   .panel-icon{width:34px;height:34px;flex:none;}
   .panel-icon svg{width:100%;height:100%;display:block;}
   .panel-kind{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:2px;letter-spacing:0.02em;}
-  .panel-name{font-size:15.5px;font-weight:700;color:var(--ink);word-break:keep-all;}
+  .panel-name{font-size:15.5px;font-weight:700;color:var(--ink);word-break:keep-all;overflow-wrap:break-word;}
 
   .meaning-label{font-size:10.5px;color:var(--ink-soft);margin-bottom:3px;}
-  .meaning-value{font-size:13.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
+  .meaning-value{font-size:13.5px;color:var(--ink);font-weight:600;word-break:keep-all;overflow-wrap:break-word;}
 
   /* ---------- 그룹 모드 ---------- */
   .group-photo-wrap{width:100px;height:100px;margin:0 auto 14px;position:relative;}
@@ -458,7 +458,7 @@
     padding:14px 16px 15px;
   }
   .member-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px;}
-  .member-head .mname{font-size:15px;font-weight:700;color:var(--ink);word-break:keep-all;}
+  .member-head .mname{font-size:15px;font-weight:700;color:var(--ink);word-break:keep-all;overflow-wrap:break-word;}
   .member-head .mdate{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;}
   .member-mini{display:flex;gap:12px;}
   .mini-item{flex:1;min-width:0;display:flex;gap:7px;align-items:flex-start;}
@@ -466,8 +466,8 @@
   .mini-item .mi-icon svg{width:100%;height:100%;display:block;}
   .mini-item .mi-text{min-width:0;}
   .mini-item .mi-kind{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:0.02em;}
-  .mini-item .mi-name{font-size:12px;font-weight:700;color:var(--ink);word-break:keep-all;line-height:1.3;}
-  .mini-item .mi-mean{font-size:10px;color:var(--ink-soft);word-break:keep-all;line-height:1.35;margin-top:1px;}
+  .mini-item .mi-name{font-size:12px;font-weight:700;color:var(--ink);word-break:keep-all;overflow-wrap:break-word;line-height:1.3;}
+  .mini-item .mi-mean{font-size:10px;color:var(--ink-soft);word-break:keep-all;overflow-wrap:break-word;line-height:1.35;margin-top:1px;}
 
   /* ---------- 사진 강조 레이아웃 (개인) ---------- */
   .photo-hero{
@@ -541,6 +541,10 @@
   .free-item .member-block{padding:9px 11px;border-radius:11px;}
   .free-item .member-block .mname{font-size:12.5px;}
   .free-item .member-block .mdate{font-size:9.5px;}
+  .free-item.member-free-item{width:200px;}
+  .free-item.member-free-item .member-head{margin-bottom:8px;}
+  .free-item.member-free-item .mname{font-size:12.5px;}
+  .free-item.member-free-item .mdate{font-size:9.5px;}
 
   /* ---------- 중앙 사진 레이아웃 (가로 전용) ---------- */
   .card.center-photo-layout.landscape{
@@ -551,17 +555,21 @@
     gap:14px;
     padding:30px;
   }
-  .card.center-photo-layout.landscape.group-center{grid-template-rows:1fr;}
   .card.center-photo-layout.landscape .top-tag{grid-column:1/4;margin-bottom:2px;}
   .center-photo-hero{
     grid-column:2;grid-row:1/3;
     border-radius:20px;overflow:hidden;
     background:var(--paper-deep);
-    display:flex;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
   }
-  .group-center .center-photo-hero{grid-row:1;}
-  .center-photo-hero img{width:100%;height:100%;object-fit:cover;display:block;}
+  .center-photo-hero img{width:100%;flex:1;min-height:0;object-fit:cover;display:block;}
   .center-photo-hero span{font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.4;}
+  .center-photo-caption{
+    flex:none;width:100%;box-sizing:border-box;
+    padding:8px 10px;font-size:10.5px;line-height:1.4;
+    color:#fff;text-align:center;word-break:keep-all;overflow-wrap:break-word;
+    background:rgba(15,15,20,0.42);
+  }
   .center-quad{
     border-radius:16px;
     padding:14px 15px;
@@ -572,17 +580,7 @@
   .center-quad.bl{grid-column:1;grid-row:2;}
   .center-quad.tr{grid-column:3;grid-row:1;}
   .center-quad.br{grid-column:3;grid-row:2;}
-  .center-quad.left-full{grid-column:1;grid-row:1;}
-  .center-quad.right-full{grid-column:3;grid-row:1;}
-  .center-quad.member-quad{
-    padding:10px 12px;
-    overflow-y:auto;
-    min-height:0;
-    max-height:480px;
-    justify-content:flex-start;
-  }
-  .center-quad.member-quad .member-list{gap:8px;margin-top:0;}
-  .center-quad.member-quad .member-block{padding:10px 12px;border-radius:12px;}
+  .center-quad.empty-quad{padding:0;}
   .center-quad .card-name{font-size:16px;margin-bottom:4px;}
   .center-quad .card-desc{font-size:11.5px;}
   .center-quad .card-date{font-size:12px;}
@@ -590,9 +588,14 @@
   .center-quad .panel-icon{width:26px;height:26px;flex:none;}
   .center-quad .panel-icon svg{width:100%;height:100%;display:block;}
   .center-quad .panel-kind{font-size:9px;color:var(--accent);font-weight:700;margin-bottom:1px;}
-  .center-quad .panel-name{font-size:13.5px;font-weight:700;color:var(--ink);word-break:keep-all;}
+  .center-quad .panel-name{font-size:13.5px;font-weight:700;color:var(--ink);word-break:keep-all;overflow-wrap:break-word;}
   .center-quad .meaning-label{font-size:9.5px;color:var(--ink-soft);margin-bottom:2px;}
-  .center-quad .meaning-value{font-size:11.5px;color:var(--ink);font-weight:600;word-break:keep-all;}
+  .center-quad .meaning-value{font-size:11.5px;color:var(--ink);font-weight:600;word-break:keep-all;overflow-wrap:break-word;}
+  .center-quad.member-quad .member-head{margin-bottom:8px;}
+  .center-quad.member-quad .mname{font-size:13.5px;}
+  .center-quad.member-quad .mdate{font-size:10px;}
+  .center-quad.member-quad .member-mini{gap:8px;}
+  .center-quad.member-quad .mi-name{font-size:11px;}
 
   /* ---------- 사진 편집 버튼 ---------- */
   .edit-photo-btn{
@@ -850,7 +853,7 @@ function sprigSVG(){
 function uid(){ return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 function newMember(){
-  return { id:uid(), name:'', month:9, day:15 };
+  return { id:uid(), name:'', month:1, day:1 };
 }
 function newCard(){
   const c = {
@@ -862,6 +865,8 @@ function newCard(){
     bg: BG_SWATCHES[state.cards.length % BG_SWATCHES.length] || BG_SWATCHES[0],
     photo:null,
     photoOriginal:null,
+    photoDispW:null,
+    photoDispH:null,
     desc:'',
     freeOpacity:{},         // 전체 사진 레이아웃 상자별 배경 투명도(0~100)
     members:[ newMember() ]
@@ -899,7 +904,6 @@ function getOpacityFields(card){
           {label:'탄생화·탄생석 상자', key:'quadBottom'}
         ]
       : [
-          {label:'그룹 설명 상자', key:'centerDesc'},
           {label:'구성원 상자', key:'centerMembers'}
         ];
   }
@@ -933,7 +937,7 @@ state.selectedId = state.cards[0].id;
 
 // ============ 이미지 크롭 모달 ============
 function getDefaultCropRatio(card){
-  return card.layout==='photo' ? 'free' : '1';
+  return (card.layout==='photo' || card.layout==='full') ? 'free' : '1';
 }
 
 let cropperInstance = null;
@@ -996,6 +1000,11 @@ document.getElementById('cropApplyBtn').addEventListener('click', ()=>{
   if(!canvas){ closeCropModal(); return; }
   const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
   cropTargetCard.photo = dataUrl;
+  // 전체 사진 레이아웃: 사진 원본 비율만큼 카드 크기가 자동으로 늘어나거나 줄어들도록 저장
+  const TARGET_LONG_EDGE = 560;
+  const scale = TARGET_LONG_EDGE / Math.max(canvas.width, canvas.height);
+  cropTargetCard.photoDispW = Math.round(canvas.width * scale);
+  cropTargetCard.photoDispH = Math.round(canvas.height * scale);
   closeCropModal();
   renderCardEditor(); renderCardList(); renderPreview();
 });
@@ -1117,8 +1126,8 @@ function renderCardEditor(){
         <div class="toggle-btn ${card.layout==='full'?'active':''}" data-layout="full">전체 사진</div>
         <div class="toggle-btn ${card.layout==='center'?'active':''}" data-layout="center">중앙 사진 (가로 전용)</div>
       </div>
-      ${card.layout==='full' ? `<div class="hint-text">미리보기에서 상자를 드래그하면 위치를 옮길 수 있어요.</div>` : ''}
-      ${card.layout==='center' ? `<div class="hint-text">이 레이아웃은 항상 가로형으로 표시돼요.</div>` : ''}
+      ${card.layout==='full' ? `<div class="hint-text">미리보기에서 상자를 드래그하면 위치를 옮길 수 있어요. 구성원 상자도 각각 자유롭게 움직일 수 있어요.</div>` : ''}
+      ${card.layout==='center' ? `<div class="hint-text">이 레이아웃은 항상 가로형으로 표시돼요.${card.mode==='group' ? ' 최대 4명까지 표시돼요(5번째 인원부터는 보이지 않아요).' : ''}</div>` : ''}
     </div>
 
     <div class="section">
@@ -1384,6 +1393,42 @@ function buildPanelHTML(kind, iconSVGFn, name, meaning, accent, opacityPct){
   `;
 }
 
+// 전체 사진(그룹) 레이아웃: 구성원마다 개별적으로 움직일 수 있는 상자
+function buildFreeMemberItemsHTML(card, opacityPct){
+  return card.members.map((m, i)=>{
+    const info = getBirthInfo(m.month, m.day);
+    const key = 'member-' + m.id;
+    const pos = ensurePos(card, key, 72, 18 + i*20);
+    const size = getFreeSize(card, key, 200, null);
+    return `
+      <div class="free-item member-free-item${size.h?' has-size':''}" data-free-key="${key}" style="left:${pos.x}%;top:${pos.y}%;${freeItemStyleAttr(size)}${tintStyle(card.accent,6,15,opacityPct)}">
+        <div class="member-head">
+          <div class="mname">${escapeHtml(m.name) || '이름 미입력'}</div>
+          <div class="mdate">${m.month}월 ${m.day}일</div>
+        </div>
+        <div class="member-mini">
+          <div class="mini-item">
+            <div class="mi-icon">${flowerSVG(card.accent)}</div>
+            <div class="mi-text">
+              <div class="mi-kind">탄생화</div>
+              <div class="mi-name">${escapeHtml(info.flower)}</div>
+              <div class="mi-mean">${escapeHtml(info.fmean)}</div>
+            </div>
+          </div>
+          <div class="mini-item">
+            <div class="mi-icon">${gemSVG(card.accent)}</div>
+            <div class="mi-text">
+              <div class="mi-kind">탄생석</div>
+              <div class="mi-name">${escapeHtml(info.gem)}</div>
+              <div class="mi-mean">${escapeHtml(info.gmean)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 function buildMemberBlocksHTML(card, opacityPct){
   return card.members.map(m=>{
     const info = getBirthInfo(m.month, m.day);
@@ -1438,6 +1483,8 @@ function freeItemStyleAttr(size){
 function buildCardHTML(card, landscape){
   const cls = 'card' + (landscape ? ' landscape' : '');
   const styleVars = `--accent:${card.accent};--cardbg:${card.bg};`;
+  // 전체 사진 레이아웃: 업로드한 사진의 원본 비율만큼 카드 크기가 자유롭게 늘어나거나 줄어듦
+  const fullPhotoSizeStyle = (card.photoDispW && card.photoDispH) ? `width:${card.photoDispW}px;height:${card.photoDispH}px;` : '';
 
   const tagHTML = card.showTag!==false ? `<span class="top-tag">Birth Flower &amp; Stone</span>` : '';
 
@@ -1452,10 +1499,7 @@ function buildCardHTML(card, landscape){
       const opName = getFreeOpacity(card,'name');
       const opInfo = getFreeOpacity(card,'info');
       return `
-        <div class="${cls} full-photo-layout" style="${styleVars}" id="cardEl-${card.id}">
-          ${tagHTML}
-          ${card.photo ? `<img class="full-photo-bg" src="${card.photo}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
-          <div class="free-item${sizeName.h?' has-size':''}" data-free-key="name" style="left:${posName.x}%;top:${posName.y}%;${freeItemStyleAttr(sizeName)}background:rgba(251,246,236,${opName/100});">
+        <div class="${cls} full-photo-layout" style="${styleVars}${fullPhotoSizeStyle}" id="cardEl-${card.id}">
             <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
             <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
           </div>
@@ -1481,21 +1525,17 @@ function buildCardHTML(card, landscape){
     } else {
       const opDesc = getFreeOpacity(card,'desc');
       const opMembers = getFreeOpacity(card,'members');
-      const memberBlocks = buildMemberBlocksHTML(card, opMembers);
-      const posDesc = ensurePos(card,'desc',26,20);
-      const posMembers = ensurePos(card,'members',72,55);
+      const memberItems = buildFreeMemberItemsHTML(card, opMembers);
+      const posDesc = ensurePos(card,'desc',26,16);
       const sizeDesc = getFreeSize(card,'desc',190,null);
-      const sizeMembers = getFreeSize(card,'members',230,220);
       return `
-        <div class="${cls} full-photo-layout" style="${styleVars}" id="cardEl-${card.id}">
+        <div class="${cls} full-photo-layout" style="${styleVars}${fullPhotoSizeStyle}" id="cardEl-${card.id}">
           ${tagHTML}
           ${card.photo ? `<img class="full-photo-bg" src="${card.photo}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
           <div class="free-item${sizeDesc.h?' has-size':''}" data-free-key="desc" style="left:${posDesc.x}%;top:${posDesc.y}%;${freeItemStyleAttr(sizeDesc)}background:rgba(251,246,236,${opDesc/100});">
             <div class="card-desc">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
           </div>
-          <div class="free-item has-size" data-free-key="members" style="left:${posMembers.x}%;top:${posMembers.y}%;${freeItemStyleAttr(sizeMembers)}background:rgba(251,246,236,${opMembers/100});">
-            <div class="member-list">${memberBlocks}</div>
-          </div>
+          ${memberItems}
         </div>
       `;
     }
@@ -1545,20 +1585,47 @@ function buildCardHTML(card, landscape){
         </div>
       `;
     } else {
-      const opCenterDesc = getFreeOpacity(card,'centerDesc');
       const opCenterMembers = getFreeOpacity(card,'centerMembers');
-      const memberBlocks = buildMemberBlocksHTML(card, opCenterMembers);
+      const shown = card.members.slice(0,4);
+      const quadKeys = ['tl','bl','tr','br'];
+      const quadHTML = quadKeys.map((qk, i)=>{
+        const mem = shown[i];
+        if(!mem){
+          return `<div class="center-quad ${qk} empty-quad"></div>`;
+        }
+        const info = getBirthInfo(mem.month, mem.day);
+        return `
+          <div class="center-quad ${qk} member-quad" style="${tintStyle(card.accent,6,15,opCenterMembers)}">
+            <div class="member-head">
+              <div class="mname">${escapeHtml(mem.name) || '이름 미입력'}</div>
+              <div class="mdate">${mem.month}월 ${mem.day}일</div>
+            </div>
+            <div class="member-mini">
+              <div class="mini-item">
+                <div class="mi-icon">${flowerSVG(card.accent)}</div>
+                <div class="mi-text">
+                  <div class="mi-kind">탄생화</div>
+                  <div class="mi-name">${escapeHtml(info.flower)}</div>
+                </div>
+              </div>
+              <div class="mini-item">
+                <div class="mi-icon">${gemSVG(card.accent)}</div>
+                <div class="mi-text">
+                  <div class="mi-kind">탄생석</div>
+                  <div class="mi-name">${escapeHtml(info.gem)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
       return `
         <div class="card landscape center-photo-layout group-center" style="${styleVars}" id="cardEl-${card.id}">
           ${tagHTML}
-          <div class="center-quad left-full" style="${tintStyle(card.accent,8,16,opCenterDesc)}">
-            <div class="card-desc">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
-          </div>
+          ${quadHTML}
           <div class="center-photo-hero">
             ${card.photo ? `<img src="${card.photo}">` : `<span>사진<br>없음</span>`}
-          </div>
-          <div class="center-quad right-full member-quad">
-            <div class="member-list">${memberBlocks}</div>
+            <div class="center-photo-caption">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
           </div>
         </div>
       `;
