@@ -2100,13 +2100,15 @@ document.getElementById('saveImageShareBtn').addEventListener('click', async ()=
 document.getElementById('downloadOneBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('downloadOneBtn');
   const card = getSelectedCard();
-  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+  // 터치스크린이 있는 PC/노트북도 pointer:coarse로 잡히는 경우가 있어서,
+  // 실제 휴대폰/태블릿(OS 기준)인지로 판단해 PC에서는 항상 바로 다운로드되게 함
+  const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   btn.disabled = true; btn.textContent = '저장 중...';
   try{
     const canvas = await captureCard(card);
     const fname = ((card.members[0] && card.members[0].name) || '캐릭터').replace(/[\\/:*?"<>|]/g,'');
 
-    if(isTouchDevice){
+    if(isMobileDevice){
       // 모바일/앱 내장 브라우저: 화면에 이미지를 띄워 길게 눌러 저장하도록 안내
       const blob = await canvasToBlob(canvas);
       saveImageBlob = blob;
