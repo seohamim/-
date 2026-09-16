@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>탄생화 · 탄생석 카드 메이커</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,12 +56,14 @@
     font-family:var(--font-main);
     color:var(--ui-text);
     height:100vh;
+    height:100dvh;
     overflow:hidden;
     background:
       radial-gradient(ellipse at 12% 0%, rgba(255,255,255,0.10), transparent 55%),
       linear-gradient(160deg, #4C6DA0 0%, #33487A 55%, #2A3B66 100%);
     display:flex;
     padding:22px;
+    -webkit-text-size-adjust:100%;
   }
 
   /* ---------- 앱 쉘 (플레이리스트 느낌: 짙은 배경 + 둥근 흰 패널) ---------- */
@@ -669,14 +671,55 @@
     display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;flex:none;
   }
 
-  /* ---------- 반응형 ---------- */
+  /* ---------- 반응형 (태블릿/모바일) ---------- */
   @media (max-width:900px){
-    body{padding:0;}
-    .app-shell{border-radius:0;}
-    .app{flex-direction:column;overflow:auto;}
-    .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--ui-border);max-height:none;overflow:visible;}
-    .app-shell{overflow:auto;}
-    .preview-area{padding:26px 14px;}
+    html,body{height:auto;}
+    body{
+      padding:0;
+      height:auto;
+      min-height:100vh;
+      min-height:100dvh;
+      overflow:visible;
+      display:block;
+    }
+    .app-shell{
+      border-radius:0;
+      min-height:100vh;
+      min-height:100dvh;
+      height:auto;
+      overflow:visible;
+      box-shadow:none;
+    }
+    .topbar{position:sticky;top:0;z-index:20;}
+    .app{flex-direction:column;overflow:visible;}
+    .sidebar{
+      width:100%;
+      border-right:none;
+      border-bottom:1px solid var(--ui-border);
+      max-height:none;
+      overflow:visible;
+      padding:16px 16px 24px;
+    }
+    .preview-area{
+      padding:22px 14px 48px;
+      overflow-x:auto;
+      overflow-y:visible;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    /* 터치 조작 편의성 향상 */
+    .btn{padding:11px 16px;font-size:13.5px;}
+    .toggle-btn{padding:12px 0;font-size:13.5px;}
+    .swatch{width:30px;height:30px;}
+    .add-card-btn,.add-member-btn{padding:12px;}
+
+    /* iOS 자동 확대 방지 (입력 폰트 16px 이상 필요) */
+    .field input[type=text], .field textarea, .field select{font-size:16px;}
+  }
+
+  @media (max-width:480px){
+    .preview-flow{gap:26px;}
+    .preview-flow.dir-portrait{flex-direction:column;align-items:center;}
   }
 </style>
 </head>
@@ -1851,7 +1894,38 @@ function renderPreview(){
   });
 
   wireFreeDrag();
+  fitPreviewToViewport();
 }
+
+// ============ 모바일 좁은 화면에서 카드가 잘리지 않게 자동 축소 ============
+function fitPreviewToViewport(){
+  const previewArea = document.querySelector('.preview-area');
+  const frames = document.querySelectorAll('.card-frame');
+  if(!previewArea || !frames.length) return;
+
+  const isNarrow = window.innerWidth <= 900;
+
+  frames.forEach(frame=>{
+    frame.style.zoom = ''; // 자연 크기로 먼저 리셋해서 측정
+  });
+
+  if(!isNarrow) return;
+
+  const availWidth = previewArea.clientWidth - 24; // 좌우 여백 감안
+  frames.forEach(frame=>{
+    const natural = frame.scrollWidth;
+    if(natural > availWidth && natural > 0){
+      const scale = Math.max(0.45, availWidth / natural);
+      frame.style.zoom = scale;
+    }
+  });
+}
+
+let fitResizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(fitResizeTimer);
+  fitResizeTimer = setTimeout(fitPreviewToViewport, 120);
+});
 
 // ============ 전체 렌더 ============
 function renderAll(){
@@ -1899,6 +1973,10 @@ function waitForImages(el){
 async function captureCard(card){
   const el = document.getElementById('cardEl-'+card.id).closest('.card-frame');
   document.body.classList.add('is-exporting');
+  // 모바일에서 미리보기 축소(zoom)를 적용해뒀다면, 캡처 전엔 원본 크기로 되돌려야
+  // 저장되는 이미지 화질이 낮아지지 않음
+  const prevZoom = el.style.zoom;
+  el.style.zoom = '';
   try{
     // 이미지가 완전히 로드된 뒤에 캡처해야 사진이 빠지는 문제가 생기지 않음
     await waitForImages(el);
@@ -1913,23 +1991,54 @@ async function captureCard(card){
     });
     return canvas;
   } finally {
+    el.style.zoom = prevZoom;
     document.body.classList.remove('is-exporting');
   }
+}
+
+function canvasToBlob(canvas){
+  return new Promise(resolve=> canvas.toBlob(resolve, 'image/png'));
 }
 
 document.getElementById('downloadOneBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('downloadOneBtn');
   const card = getSelectedCard();
+  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
   btn.disabled = true; btn.textContent = '저장 중...';
   try{
     const canvas = await captureCard(card);
-    const link = document.createElement('a');
     const fname = ((card.members[0] && card.members[0].name) || '캐릭터').replace(/[\\/:*?"<>|]/g,'');
-    link.download = `${fname}_탄생카드.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    const blob = await canvasToBlob(canvas);
+    const file = new File([blob], `${fname}_탄생카드.png`, {type:'image/png'});
+
+    // 모바일: 공유 시트를 지원하면 "사진에 저장"으로 바로 연결됨 (가장 안정적)
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:`${fname}_탄생카드`});
+    }
+    // 공유 시트를 지원하지 않는 모바일 브라우저(구형 iOS 사파리 등): 새 탭에 이미지를 열어
+    // 길게 눌러 저장할 수 있게 안내
+    else if(isTouchDevice){
+      const dataUrl = canvas.toDataURL('image/png');
+      const win = window.open();
+      if(win){
+        win.document.write(`<title>${fname}_탄생카드</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${dataUrl}" style="max-width:100%;height:auto;"></body>`);
+      } else {
+        alert('팝업이 차단되었어요. 팝업 허용 후 다시 시도해주세요.');
+      }
+      alert('이미지를 길게 눌러 "사진에 저장"을 선택해주세요.');
+    }
+    // 데스크톱: 기존 방식대로 바로 다운로드
+    else {
+      const link = document.createElement('a');
+      link.download = `${fname}_탄생카드.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
   }catch(err){
-    alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
+    // 사용자가 공유 시트를 취소한 경우(AbortError)는 에러 알림을 띄우지 않음
+    if(err && err.name !== 'AbortError'){
+      alert('이미지 저장에 실패했어요. 다시 시도해주세요.');
+    }
   }
   btn.disabled = false; btn.textContent = '이미지로 저장';
 });
