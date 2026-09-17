@@ -587,6 +587,10 @@
     color:#fff;text-align:var(--talign-desc, var(--talign, center));word-break:keep-all;overflow-wrap:break-word;
     background:rgba(15,15,20,0.42);
   }
+  .center-photo-name{
+    font-size:13px;font-weight:700;margin-bottom:2px;
+    text-align:var(--talign-name, var(--talign, center));
+  }
   .center-quad{
     border-radius:16px;
     padding:14px 15px;
@@ -996,6 +1000,7 @@ function newCard(){
     photoDispH:null,
     photoOpacity:100,       // 사진 자체의 투명도(0~100). 100=원본 그대로
     desc:'',
+    groupName:'',           // 그룹 카드일 때 개별 구성원 이름과 별개로 쓰는 '그룹' 자체의 이름
     textAlign:null,         // 전체 기본 정렬: null(레이아웃 기본) | 'left' | 'center' | 'right'
     textAlignName:null,     // 이름 텍스트만 다른 정렬을 쓰고 싶을 때 (null이면 전체 기본 정렬을 따름)
     textAlignDesc:null,     // 소개/설명 텍스트만 다른 정렬
@@ -1025,7 +1030,7 @@ function getOpacityFields(card){
           {label:'생일+탄생석+탄생화 상자', key:'info'}
         ]
       : [
-          {label:'그룹 설명 상자', key:'desc'},
+          {label:'그룹 이름+설명 상자', key:'desc'},
           {label:'구성원 상자', key:'members'}
         ];
   }
@@ -1202,7 +1207,9 @@ function renderCardList(){
     const row = document.createElement('div');
     row.className = 'card-row' + (card.id===state.selectedId ? ' active' : '');
     row.style.setProperty('--row-accent', card.bg);
-    const mainName = card.members[0] && card.members[0].name ? card.members[0].name : ('인원 '+(idx+1));
+    const mainName = (card.mode==='group' && card.groupName && card.groupName.trim())
+      ? card.groupName
+      : (card.members[0] && card.members[0].name ? card.members[0].name : ('인원 '+(idx+1)));
     const metaText = card.mode==='group' ? `그룹 · ${card.members.length}명` : '개인 카드';
     row.innerHTML = `
       <div class="thumb">${card.photo ? `<img src="${card.photo}">` : ''}</div>
@@ -1310,6 +1317,10 @@ function renderCardEditor(){
     </div>
 
     <div class="section" id="groupFieldsSection" style="${card.mode==='group'?'':'display:none;'}">
+      <div class="field">
+        <span class="field-label">그룹 이름</span>
+        <input type="text" id="groupNameInput" placeholder="예: 우리 가족, ○○ 동아리" maxlength="30" value="${escapeHtml(card.groupName || '')}">
+      </div>
       <div class="field">
         <span class="field-label">그룹 설명 (선택)</span>
         <textarea id="groupDescInput" rows="2" placeholder="예: 다 같이 모인 날" maxlength="80">${escapeHtml(card.desc)}</textarea>
@@ -1543,6 +1554,9 @@ function renderCardEditor(){
       renderPreview();
     });
   } else {
+    document.getElementById('groupNameInput').addEventListener('input', (e)=>{
+      card.groupName = e.target.value; renderPreview();
+    });
     document.getElementById('groupDescInput').addEventListener('input', (e)=>{
       card.desc = e.target.value; renderPreview();
     });
@@ -1763,13 +1777,19 @@ function buildCardHTML(card, landscape){
       const memberItems = buildFreeMemberItemsHTML(card, opMembers);
       const posDesc = ensurePos(card,'desc',26,16);
       const sizeDesc = getFreeSize(card,'desc',190,null);
+      const hasGroupName = card.groupName && card.groupName.trim();
+      const hasGroupDesc = card.desc && card.desc.trim();
+      const groupNameDescBox = (hasGroupName || hasGroupDesc) ? `
+          <div class="free-item${sizeDesc.h?' has-size':''}" data-free-key="desc" style="left:${posDesc.x}%;top:${posDesc.y}%;${freeItemStyleAttr(sizeDesc)}background:rgba(251,246,236,${opDesc/100});">
+            ${hasGroupName ? `<div class="card-name">${escapeHtml(card.groupName)}</div>` : ''}
+            ${hasGroupDesc ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
+          </div>
+        ` : '';
       return `
         <div class="${cls} full-photo-layout" style="${styleVars}${fullPhotoSizeStyle}" id="cardEl-${card.id}">
           ${tagHTML}
           ${card.photo ? `<img class="full-photo-bg" src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
-          <div class="free-item${sizeDesc.h?' has-size':''}" data-free-key="desc" style="left:${posDesc.x}%;top:${posDesc.y}%;${freeItemStyleAttr(sizeDesc)}background:rgba(251,246,236,${opDesc/100});">
-            <div class="card-desc">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
-          </div>
+          ${groupNameDescBox}
           ${memberItems}
         </div>
       `;
@@ -1860,7 +1880,10 @@ function buildCardHTML(card, landscape){
           ${quadHTML}
           <div class="center-photo-hero">
             ${card.photo ? `<img src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<span>사진<br>없음</span>`}
-            <div class="center-photo-caption">${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}</div>
+            <div class="center-photo-caption">
+              ${(card.groupName && card.groupName.trim()) ? `<div class="center-photo-name">${escapeHtml(card.groupName)}</div>` : ''}
+              ${escapeHtml(card.desc) || '그룹 설명을 입력하면 여기에 표시돼요'}
+            </div>
           </div>
         </div>
       `;
@@ -1905,10 +1928,12 @@ function buildCardHTML(card, landscape){
     const memberBlocks = buildMemberBlocksHTML(card, getFreeOpacity(card,'memberBlocks'));
 
     const isPhoto = card.layout==='photo';
+    const groupNameHTML = (card.groupName && card.groupName.trim()) ? `<div class="card-name">${escapeHtml(card.groupName)}</div>` : '';
     const groupProfileInner = isPhoto ? `
           <div class="photo-hero group-hero${card.photo?'':' empty'}">
             ${card.photo ? `<img src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<span>사진<br>없음</span>`}
           </div>
+          ${groupNameHTML}
           <div class="card-desc">${escapeHtml(card.desc) || ''}</div>
           <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
         ` : `
@@ -1916,6 +1941,7 @@ function buildCardHTML(card, landscape){
             ${card.photo ? `<img class="photo-circle-img" src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<div class="photo-circle-empty">사진<br>없음</div>`}
             <div class="photo-ring"></div>
           </div>
+          ${groupNameHTML}
           <div class="card-desc">${escapeHtml(card.desc) || ''}</div>
           <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
         `;
