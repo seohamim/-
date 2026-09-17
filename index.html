@@ -6,9 +6,10 @@
 <title>탄생화 · 탄생석 카드 메이커</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
 <style>
@@ -638,12 +639,15 @@
     position:fixed;inset:0;background:rgba(20,22,30,0.55);
     display:none;align-items:center;justify-content:center;
     z-index:999;padding:20px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
   .crop-modal-overlay.show{display:flex;}
   .crop-modal{
     background:#fff;border-radius:18px;width:100%;max-width:520px;
-    overflow:hidden;box-shadow:0 30px 70px rgba(10,18,40,0.4);
+    overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+    box-shadow:0 30px 70px rgba(10,18,40,0.4);
     display:flex;flex-direction:column;max-height:90vh;
+    margin:auto;
   }
   .crop-modal-head{
     display:flex;align-items:center;justify-content:space-between;
@@ -793,6 +797,9 @@
           <option value="paperlogy">페이퍼로지</option>
           <option value="nanumsquare">나눔스퀘어</option>
           <option value="gmarket">지마켓 산스</option>
+          <option value="notoserifcjk">Noto Serif CJK KR</option>
+          <option value="kopubbatang">KOPUB 바탕</option>
+          <option value="chosunmj">조선일보명조</option>
         </select>
       </div>
     </div>
@@ -917,7 +924,10 @@ const FONT_MAP = {
   pretendard:"'Pretendard', sans-serif",
   paperlogy:"'Paperlogy', 'Pretendard', sans-serif",
   nanumsquare:"'NanumSquare', 'Pretendard', sans-serif",
-  gmarket:"'GmarketSansMedium', 'Pretendard', sans-serif"
+  gmarket:"'GmarketSansMedium', 'Pretendard', sans-serif",
+  notoserifcjk:"'Noto Serif KR', serif",
+  kopubbatang:"'KoPub Batang', 'Noto Serif KR', serif",
+  chosunmj:"'Nanum Myeongjo', 'Noto Serif KR', serif"
 };
 
 const ACCENT_SWATCHES = ['#2F3E6B','#C1665A','#3F7052','#6B5B95','#B8934A','#4A4A46'];
@@ -1750,7 +1760,7 @@ function buildCardHTML(card, landscape){
           ${card.photo ? `<img class="full-photo-bg" src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<div class="full-photo-bg-empty">사진<br>없음</div>`}
           <div class="free-item${sizeName.h?' has-size':''}" data-free-key="name" style="left:${posName.x}%;top:${posName.y}%;${freeItemStyleAttr(sizeName)}background:rgba(251,246,236,${opName/100});">
             <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
-            <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+            ${card.desc && card.desc.trim() ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
           </div>
           <div class="free-item${sizeInfo.h?' has-size':''}" data-free-key="info" style="left:${posInfo.x}%;top:${posInfo.y}%;${freeItemStyleAttr(sizeInfo)}background:rgba(251,246,236,${opInfo/100});">
             <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
@@ -1807,7 +1817,7 @@ function buildCardHTML(card, landscape){
           ${tagHTML}
           <div class="center-quad tl" style="${tintStyle(card.accent,8,16,opQuadTop)}">
             <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
-            <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+            ${card.desc && card.desc.trim() ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
           </div>
           <div class="center-photo-hero">
             ${card.photo ? `<img src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<span>사진<br>없음</span>`}
@@ -1899,7 +1909,7 @@ function buildCardHTML(card, landscape){
             ${card.photo ? `<img src="${card.photo}" style="opacity:${photoOpacityValue(card)}">` : `<span>사진<br>없음</span>`}
           </div>
           <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
-          <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          ${card.desc && card.desc.trim() ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
           <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
           <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
         ` : `
@@ -1908,7 +1918,7 @@ function buildCardHTML(card, landscape){
             <div class="photo-ring"></div>
           </div>
           <div class="card-name">${escapeHtml(m.name) || '이름을 입력하세요'}</div>
-          <div class="card-desc">${escapeHtml(card.desc) || '소개를 입력하면 여기에 표시돼요'}</div>
+          ${card.desc && card.desc.trim() ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : ''}
           <div class="sprig-divider"><span class="line"></span>${sprigSVG()}<span class="line"></span></div>
           <div class="card-date">생일: <b>${m.month}월 ${m.day}일</b></div>
         `;
